@@ -1,13 +1,15 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { MainLayoutComponent } from './layouts/main-layout/main-layout.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, MainLayoutComponent],
   template: `
-    <h1>Welcome to {{title}}!</h1>
-
-    <router-outlet />
+    <main class="border-r border-5 border-solid">
+      <app-main-layout/>
+      <router-outlet class="border-r border-5 border-solid"/>
+    </main>
   `,
   styles: [],
 })
