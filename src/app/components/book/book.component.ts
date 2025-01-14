@@ -1,21 +1,28 @@
-import { Component, InjectionToken, Inject } from '@angular/core';
-
-export const TITLE_TOKEN = new InjectionToken<string>('title');
+import { Component, Input, Output, EventEmitter} from '@angular/core';
+import { Book } from '../../models';
 
 @Component({
   selector: 'app-book',
   imports: [],
+  standalone: true,
   template: `
-    <p>
-      book works!
-    </p>
+    <button class="block text-center text-green-500 px-2 py-2" (click)="bookClicked.emit(title)">{{title}}</button>
   `,
   styles: ``
 })
 export class BookComponent {
-  title: string;
+  @Input() 
+  book!: Book ;
 
-  constructor(@Inject(TITLE_TOKEN) title: string) {
-    this.title = title;
+
+  @Output() 
+  bookClicked = new EventEmitter<string>();
+
+  get id(): string {
+    return this.book.id;
+  }
+
+  get title(): string {
+    return this.book.title;
   }
 }

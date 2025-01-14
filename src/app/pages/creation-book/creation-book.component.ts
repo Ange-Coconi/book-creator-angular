@@ -1,15 +1,16 @@
 import { Component } from '@angular/core';
 import { BibliothekComponent } from '../../components/bibliothek/bibliothek.component';
+import { TextEditorComponent } from '../../components/text-editor/text-editor.component';
 
 @Component({
   selector: 'app-creation-book',
-  imports: [BibliothekComponent],
+  imports: [BibliothekComponent, TextEditorComponent],
   template: `
-    <div class="w-screen h-screen border-r border-1 border-solid">
+    <div class="w-full h-full ">
       <app-bibliothek (click)="deployMenu()" />
+      <app-text-editor />
+      <p class="test">Hello world !</p>
     </div>  
-  `,
-  styles: `
   `
 })
 export class CreationBookComponent {
