@@ -5,10 +5,10 @@ import { Book } from './book.model';
 export class Page {
     _id: string;
     _number: number;
-    _content: Node;
+    _content: string;
     _parent: string = '';
 
-    constructor(number: number, content: Node,parent: string) {
+    constructor(number: number, content: string, parent: string) {
         this._id = uuidv4();
         this._number = number;
         this._content = content;
@@ -27,11 +27,11 @@ export class Page {
         this._number = number;
     }
 
-    get content(): Node{
+    get content(): string{
         return this._content;
     }
 
-    set content(content: Node) {
+    set content(content: string) {
         this._content = content;
     }
 }

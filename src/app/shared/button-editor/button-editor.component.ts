@@ -5,7 +5,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
   imports: [],
   template: `
     <button 
-      class="bg-slate-300 text-black px-2 py-2 border rounded-md shadow-md hover:opacity-90"
+      class="bg-slate-300 text-black px-2 py-2 border rounded-md shadow-md hover:opacity-80"
       (click)="boutonClicked.emit()"
       >
       {{name}}</button>

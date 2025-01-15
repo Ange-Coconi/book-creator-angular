@@ -13,11 +13,17 @@ import { Page } from '../../models/page.model';
   providers: [],
   template: `
     <div class="fixed top-14 left-0 w-64 h-full bg-slate-900/75 text-white">
-      <h2 class="mb-1">Library</h2>
+      <div class="flex justify-center items-center border-y-4 mb-3">
+        <h2 class="text-xl py-2">Library</h2>
+      </div>
       @if (this.bookService.bookSelected() === null) {
-          <button class="block" (click)="handleCreateANewBook()">Create a new Book</button>
-        @if (this.prev !== null) {
-          <button class="block" (click)="handleClickBack()">Back</button>
+        <div class="flex justify-center items-center mb-2">
+          <button class="block px-2 py-2 border rounded-md shadow-md hover:opacity-80" (click)="handleCreateANewBook()">Create a new Book</button>
+        </div>
+          @if (this.prev !== null) {
+            <div class="flex justify-center items-center">
+              <button class="block px-2 py-2 border rounded-md shadow-md hover:opacity-80" (click)="handleClickBack()">Back</button>
+            </div>
         }
         @for (folder of actualDisplay.folders; track folder.id) {
           <app-folder [folder]="folder" (folderClicked)="handleFolderClicked($event)" />
@@ -30,12 +36,14 @@ import { Page } from '../../models/page.model';
             <form (submit)="handleSubmitTitle($event)" class="fixed top-1/2 left-1/2 w-1/5 h-1/5 z-30 flex flex-col justify-center items-center">
               <label for="title">Title</label>
               <input type="text" id="title" name="title" required/>
-              <button type="submit">ok</button>
+              <button class="px-2 py-2 border rounded-md shadow-md hover:opacity-80" type="submit">ok</button>
             </form>
           </div>
         }
       } @else {
-        <button class="block" (click)="handleClickBackFromBook()">Back</button>
+        <div class="flex justify-center items-center mb-2">
+          <button class="block px-2 py-2 border rounded-md shadow-md hover:opacity-80" (click)="handleClickBackFromBook()">Back</button>
+        </div>
         @if (this.bookService.bookSelected()!.pages.length > 0) {
           @for (page of this.bookService.bookSelected()!.pages; track page.id) {
           <app-page [page]="page" (pageClicked)="handlePageClicked($event)"/>
@@ -56,42 +64,34 @@ export class BibliothekComponent implements OnInit {
   prev: string | null = null;
   windowCreationNewBook: boolean = false;
  
-  handleClickBackFromBook() {
-    this.bookService.selectBook(null); 
-    // update bibliothek
+  handleClickBackFromBook() { 
+    this.bookService.retrieveEditorContent()
+
+    if (this.actualFolderName === "root") {
+      this.bibliothek.books.splice(this.bookService.indexBookSelected(), 1, this.bookService.bookSelected()!)
+    } else {
+      const index = this.bibliothek.folders.findIndex(folder => {  // find the index of the current Folder 
+        return folder._name === this.actualFolderName;
+      })
+      this.bibliothek.folders[index].items.books.splice(this.bookService.indexBookSelected(), 1, this.bookService.bookSelected()!)
+    }
+
+    this.bookService.selectBook(null);
   }
 
   handlePageClicked(number: number) {
-    console.log("  ")
-    console.log("  ")
     const editor = document.getElementById("editor");
-    console.log(editor)
-    console.log("  ")
-    console.log("  ")
     if (editor === null) { 
         return; 
     }
-    const container = document.createElement('div');
-      editor.childNodes.forEach(node => {
-          container.appendChild(node);
-          console.log(node)
-      })
-    const numberCurrentPage = this.bookService.pageSelected()?.number;
-    console.log("previous page :")
-    console.log(numberCurrentPage)
-    if (numberCurrentPage !== undefined) {
-      this.bookService.bookSelected()!.pages[numberCurrentPage].content = container;
-      console.log(container)
-    } 
+    
+    this.bookService.retrieveEditorContent()
+    
     const page = this.bookService.bookSelected()?.pages[number];
     if (page) {
       this.bookService.selectPage(page);
-      console.log("new page :")
-      console.log(page.number)
-      this.bookService.pageSelected()!.content.childNodes.forEach(node => {
-        editor.appendChild(node)
-        console.log(node)
-      })
+
+      editor.innerHTML = this.bookService.pageSelected()!.content
     }
   }
 
@@ -103,11 +103,8 @@ export class BibliothekComponent implements OnInit {
     this.actualDisplay.books.push(newBook);   // add the new Book to the display
     
     if (this.actualFolderName === "root") {
-      
       this.bibliothek.books.push(newBook);    // add the new Book to library if in the root Folder
-    
     } else {
-
       const index = this.bibliothek.folders.findIndex(folder => {  // find the index of the current Folder 
         return folder._name === this.actualFolderName;
       })
@@ -156,13 +153,13 @@ export class BibliothekComponent implements OnInit {
     this.prev = this.bibliothek.folders[indexFolderToDisplay]._parent;
   }
 
-  createPage(node: Node) {
-    if (this.bookService.bookSelected() !== null) {
-      const numberNextPage = this.bookService.bookSelected()!._pages.length;
-      const newPage: Page = new Page(numberNextPage, node, this.bookService.bookSelected()!._parent!)
-      this.bookService.bookSelected()!._pages.push(newPage);
-    }       
-  }
+  // createPage(node: Node) {
+  //   if (this.bookService.bookSelected() !== null) {
+  //     const numberNextPage = this.bookService.bookSelected()!._pages.length;
+  //     const newPage: Page = new Page(numberNextPage, node, this.bookService.bookSelected()!._parent!)
+  //     this.bookService.bookSelected()!._pages.push(newPage);
+  //   }       
+  // }
 
   ngOnInit() {
     const library: folderOrganisator = {

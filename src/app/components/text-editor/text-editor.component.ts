@@ -26,7 +26,7 @@ import { Page } from '../../models/page.model';
   `,
   styles: ``
 })
-export class TextEditorComponent implements OnDestroy {
+export class TextEditorComponent {
     bookDefault = new Book("default", "root")
 
     ngOnInit() {
@@ -34,35 +34,14 @@ export class TextEditorComponent implements OnDestroy {
         if (editor === null) { return }
         const numberOfPage = this.bookService.bookSelected()!._pages.length;
         if (numberOfPage > 0) {
-            this.bookService.bookSelected()!._pages[numberOfPage - 1]._content.childNodes.forEach(node => {
-                editor.appendChild(node)
-            })
+            editor.innerHTML = this.bookService.bookSelected()!._pages[numberOfPage - 1]._content
         } else {
-            const node = document.createElement("div");
-            const newPage = new Page(0, node, this.bookService.bookSelected()!.title);
+            const newPage = new Page(0, '', this.bookService.bookSelected()!.title);
             this.bookService.bookSelected()?.pages.push(newPage)
             this.bookService.selectPage(newPage);
         }
     }
 
-    ngOnDestroy(): void {
-        if (this.bookService.bookSelected()!.pages.length !== this.bookService.pageSelected()?.number) {
-            this.handleNewPage()
-        } else {
-            const editor = document.getElementById("editor");
-            if (editor === null) { 
-                return; 
-            }
-            const container = document.createElement('div');
-                editor.childNodes.forEach(node => {
-                    container.appendChild(node);
-                })
-            const numberCurrentPage = this.bookService.pageSelected()?.number;
-            if (numberCurrentPage !== undefined) {
-            this.bookService.bookSelected()!.pages[numberCurrentPage].content = container;
-                }
-            }
-    }
 
     checkOverflow() {
         const editor = document.getElementById("editor");
@@ -74,26 +53,11 @@ export class TextEditorComponent implements OnDestroy {
     }
 
     handleNewPage() {
-        const editor = document.getElementById("editor");
-        if (editor === null) { 
-            return; 
-        }
-        console.log(editor)
-        const container = document.createElement('div');
-            editor.childNodes.forEach((node, index) => {
-                container.appendChild(node);
-                console.log(`node ${index} :`)
-                console.log(node)
-            })
-        console.log(container)
-        const numberCurrentPage = this.bookService.pageSelected()?.number;
-        if (numberCurrentPage !== undefined) {
-            this.bookService.bookSelected()!.pages[numberCurrentPage].content = container;
-        }
+        this.bookService.retrieveEditorContent()
 
         const numberNextPage = this.bookService.bookSelected()!._pages.length;
-        const node = document.createElement("div"); 
-        const newPage: Page = new Page(numberNextPage, node, this.bookService.bookSelected()!._parent!)
+
+        const newPage: Page = new Page(numberNextPage, '', this.bookService.bookSelected()!._parent!)
         this.bookService.bookSelected()!._pages.push(newPage);
 
         const page = this.bookService.bookSelected()?.pages[numberNextPage];
@@ -102,14 +66,6 @@ export class TextEditorComponent implements OnDestroy {
         }
 
     }
-
-    // createPage(node: Node) {
-    //     if (this.bookService.bookSelected() !== null) {
-    //       const numberNextPage = this.bookService.bookSelected()!._pages.length;
-    //       const newPage: Page = new Page(numberNextPage, node, this.bookService.bookSelected()!._parent!)
-    //       this.bookService.bookSelected()!._pages.push(newPage);
-    //     }       
-    //   }
 
     constructor (public bookService: BookService) {}
 
