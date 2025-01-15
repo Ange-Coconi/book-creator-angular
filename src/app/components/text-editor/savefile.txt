@@ -1,0 +1,463 @@
+handleUnderlineEventNew() {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+
+    const range = selection.getRangeAt(0);
+
+    // Helper function to check if a node or its ancestors have underline
+    const hasUnderlineStyle = (node: Node): boolean => {
+        let currentNode: Node | null = node;
+        while (currentNode) {
+            if (currentNode instanceof HTMLElement) {
+                if (window.getComputedStyle(currentNode).textDecoration.includes('underline')) {
+                    return true;
+                }
+            }
+            currentNode = currentNode.parentNode;
+        }
+        return false;
+    };
+
+    // Check if either the start or end containers or their ancestors have underline
+    const hasUnderlined = hasUnderlineStyle(range.startContainer) || hasUnderlineStyle(range.endContainer);
+
+    if (hasUnderlined && range.startContainer === range.endContainer && range.startContainer.nodeType === Node.TEXT_NODE) {
+        const textNode = range.startContainer;
+        const parentToRemove = textNode.parentNode as HTMLElement;
+        const parentOfParent = parentToRemove.parentElement;
+                
+        if ((range.startOffset > 0 || range.endOffset < textNode.textContent!.length) && parentOfParent !== null) {
+            // Create three spans: before selection, selection, and after selection
+            if (range.startOffset > 0) {
+                const beforeSpan = document.createElement('span');
+                beforeSpan.style.textDecoration = 'underline';
+                beforeSpan.textContent = textNode.textContent!.substring(0, range.startOffset);
+                parentOfParent.insertBefore(beforeSpan, parentToRemove);
+            }
+
+            const selectionSpan = document.createElement('span');
+            selectionSpan.style.textDecoration = 'none';
+            selectionSpan.textContent = textNode.textContent!.substring(range.startOffset, range.endOffset);
+            parentOfParent.insertBefore(selectionSpan, parentToRemove);
+
+            if (range.endOffset < textNode.textContent!.length) {
+                const afterSpan = document.createElement('span');
+                afterSpan.style.textDecoration = 'underline';
+                afterSpan.textContent = textNode.textContent!.substring(range.endOffset);
+                parentOfParent.insertBefore(afterSpan, parentToRemove);
+            }
+            parentOfParent.removeChild(parentToRemove);
+            parentOfParent.normalize();
+
+            // parent.removeChild(textNode);
+            // parentOfParent?.removeChild(parent);
+            selection.removeAllRanges();
+            return;
+        }
+        if (parentToRemove.tagName === 'SPAN' && parentToRemove.style.textDecoration === 'underline') {
+            const parent = parentToRemove.parentNode;
+            if (parent) {
+                while (parentToRemove.firstChild) {
+                    parent.insertBefore(parentToRemove.firstChild, parentToRemove);
+                }
+                parent.removeChild(parentToRemove);
+                parent.normalize();
+            }
+            return;
+          }
+      }     
+
+    // Regular processing for other cases
+    const originalContent = range.cloneContents();
+    range.deleteContents();
+
+    const processNode = (node: Node): Node => {
+        if (node.nodeType === Node.TEXT_NODE) {
+            if (hasUnderlined) {
+                return node.cloneNode(); // Simply clone text node, no span needed for removal
+            } else {
+                const span = document.createElement('span');
+                span.style.textDecoration = 'underline';
+                span.appendChild(node.cloneNode());
+                return span;
+            }
+        }
+
+        if (node instanceof HTMLElement) {
+            if (node.tagName === 'SPAN' && node.style.textDecoration === 'underline' && hasUnderlined) {
+                // Remove underline spans
+                const fragment = document.createDocumentFragment();
+                node.childNodes.forEach(child => {
+                    fragment.appendChild(processNode(child));
+                });
+                return fragment;
+            } else if (!hasUnderlined) {
+                // Wrap in a span with underline if not already underlined
+                const span = document.createElement('span');
+                span.style.textDecoration = 'underline';
+                span.textContent = node.textContent;
+                return span;
+            }
+        }
+
+        return node.cloneNode(true);
+    };
+
+    const newFragment = document.createDocumentFragment();
+    originalContent.childNodes.forEach(node => {
+        newFragment.appendChild(processNode(node));
+    });
+
+    range.insertNode(newFragment);
+    // Normalize the parent container to clean up text nodes
+    const editor = document.getElementById('editor'); // Assuming 'editor' is the container
+    if (editor) {
+        editor.normalize();
+    }
+    selection.removeAllRanges();
+
+    
+}
+
+handleUnderlineEvent() {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+
+    const range = selection.getRangeAt(0);
+
+    // Helper function to check if a node or its ancestors have underline
+    const hasUnderlineStyle = (node: Node): boolean => {
+        let currentNode: Node | null = node;
+        while (currentNode) {
+            if (currentNode instanceof HTMLElement) {
+                if (window.getComputedStyle(currentNode).textDecoration.includes('underline')) {
+                    return true;
+                }
+            }
+            currentNode = currentNode.parentNode;
+        }
+        return false;
+    };
+
+    // Check if either the start or end containers or their ancestors have underline
+    const hasUnderlined = hasUnderlineStyle(range.startContainer) || hasUnderlineStyle(range.endContainer);
+
+    if (hasUnderlined && range.startContainer === range.endContainer && range.startContainer.nodeType === Node.TEXT_NODE) {
+        const textNode = range.startContainer;
+        const parentToRemove = textNode.parentNode as HTMLElement;
+        const parentOfParent = parentToRemove.parentElement;
+                
+        if ((range.startOffset > 0 || range.endOffset < textNode.textContent!.length) && parentOfParent !== null) {
+            // Create three spans: before selection, selection, and after selection
+            if (range.startOffset > 0) {
+                const beforeSpan = document.createElement('span');
+                beforeSpan.style.textDecoration = 'underline';
+                beforeSpan.textContent = textNode.textContent!.substring(0, range.startOffset);
+                parentOfParent.insertBefore(beforeSpan, parentToRemove);
+            }
+
+            const selectionSpan = document.createElement('span');
+            selectionSpan.style.textDecoration = 'none';
+            selectionSpan.textContent = textNode.textContent!.substring(range.startOffset, range.endOffset);
+            parentOfParent.insertBefore(selectionSpan, parentToRemove);
+
+            if (range.endOffset < textNode.textContent!.length) {
+                const afterSpan = document.createElement('span');
+                afterSpan.style.textDecoration = 'underline';
+                afterSpan.textContent = textNode.textContent!.substring(range.endOffset);
+                parentOfParent.insertBefore(afterSpan, parentToRemove);
+            }
+            parentOfParent.removeChild(parentToRemove);
+            parentOfParent.normalize();
+
+            // parent.removeChild(textNode);
+            // parentOfParent?.removeChild(parent);
+            selection.removeAllRanges();
+            return;
+        }
+        if (parentToRemove.tagName === 'SPAN' && parentToRemove.style.textDecoration === 'underline') {
+            const parent = parentToRemove.parentNode;
+            if (parent) {
+                while (parentToRemove.firstChild) {
+                    parent.insertBefore(parentToRemove.firstChild, parentToRemove);
+                }
+                parent.removeChild(parentToRemove);
+                parent.normalize();
+            }
+            return;
+          }
+      }     
+
+    // Regular processing for other cases
+    const originalContent = range.cloneContents();
+    range.deleteContents();
+
+    const processNode = (node: Node): Node => {
+        if (node.nodeType === Node.TEXT_NODE) {
+            if (hasUnderlined) {
+                return node.cloneNode(); // Simply clone text node, no span needed for removal
+            } else {
+                const span = document.createElement('span');
+                span.style.textDecoration = 'underline';
+                span.appendChild(node.cloneNode());
+                return span;
+            }
+        }
+
+        if (node instanceof HTMLElement) {
+            if (node.tagName === 'SPAN' && node.style.textDecoration === 'underline' && hasUnderlined) {
+                // Remove underline spans
+                const fragment = document.createDocumentFragment();
+                node.childNodes.forEach(child => {
+                    fragment.appendChild(processNode(child));
+                });
+                return fragment;
+            } else if (!hasUnderlined) {
+                // Wrap in a span with underline if not already underlined
+                const span = document.createElement('span');
+                span.style.textDecoration = 'underline';
+                span.textContent = node.textContent;
+                return span;
+            }
+        }
+
+        return node.cloneNode(true);
+    };
+
+    const newFragment = document.createDocumentFragment();
+    originalContent.childNodes.forEach(node => {
+        newFragment.appendChild(processNode(node));
+    });
+
+    range.insertNode(newFragment);
+    // Normalize the parent container to clean up text nodes
+    const editor = document.getElementById('editor'); // Assuming 'editor' is the container
+    if (editor) {
+        editor.normalize();
+    }
+    selection.removeAllRanges();
+
+    
+}
+
+
+handleRemoveStyleOld() {
+    const container = document.getElementById('editor');
+
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+
+    const range = selection.getRangeAt(0);
+
+    const hasStyleToRemove = (node: Node): boolean => {
+        if (node instanceof HTMLElement && node.tagName === 'SPAN') {
+            return (
+                node.style.textDecoration.includes('underline') ||
+                node.style.fontWeight === 'bold' ||
+                node.style.fontStyle === 'italic' || true
+            );
+        }
+        return false;
+    };
+    
+
+    const processNode = (node: Node, parentStyle?: CSSStyleDeclaration): Node => {
+        if (node.nodeType === Node.TEXT_NODE) {
+            return node.cloneNode();
+        }
+
+        if (node instanceof HTMLElement) {
+            const computedStyle = window.getComputedStyle(node);
+
+            // Check if this node has any of the target styles
+            const isStyledSpan = hasStyleToRemove(node);
+
+
+            if (isStyledSpan) {
+                const fragment = document.createDocumentFragment();
+                node.childNodes.forEach(child => {
+                    fragment.appendChild(processNode(child, computedStyle));
+                });
+                return fragment;
+            }
+
+            // Clone the element and process children
+            const clonedElement = document.createElement(node.tagName);
+            [...node.attributes].forEach(attr => {
+                clonedElement.setAttribute(attr.name, attr.value);
+            });
+
+            node.childNodes.forEach(child => {
+                clonedElement.appendChild(processNode(child, computedStyle));
+            });
+
+            return clonedElement;
+        }
+
+        return node.cloneNode(true); // Clone other node types
+    };
+
+    const originalContent = range.cloneContents();
+
+    // Clear the range content
+    range.deleteContents();
+
+    // Process the original content and remove styles
+    const newFragment = document.createDocumentFragment();
+    originalContent.childNodes.forEach(node => {
+        newFragment.appendChild(processNode(node));
+    });
+
+    if (range.commonAncestorContainer.parentElement?.tagName === "SPAN" && range.startContainer.nodeType === Node.TEXT_NODE ) {
+        if (range.startContainer.textContent!.length === range.endOffset - range.startOffset ) {
+            console.log("hoho")
+            let currentNode = range.commonAncestorContainer.parentElement;
+            while (currentNode instanceof HTMLElement && currentNode.parentElement?.tagName === "SPAN") {
+                if (currentNode.parentElement !== null) {
+                    currentNode = currentNode.parentElement;
+                }
+            }
+            const parent = currentNode.parentElement;
+            parent?.insertBefore(newFragment, currentNode);
+            parent?.removeChild(currentNode);
+        } else {
+            console.log("hello")
+            const parent = range.commonAncestorContainer.parentElement;
+            const grandParent = parent.parentElement;
+            const beforeSpan = document.createElement('span');
+            const afterSpan = document.createElement('span');
+            let i = 0;
+            while (parent.childNodes[i] !== range.startContainer) {
+                i++
+                beforeSpan.appendChild(parent.childNodes[i].cloneNode())
+            }
+            const textContent = range.startContainer.textContent!.substring(0, range.startOffset);
+            const textNode = document.createTextNode(textContent);
+            beforeSpan.appendChild(textNode);
+
+            const textContentbis = range.endContainer.textContent!.substring(range.endOffset);
+            const textNodebis = document.createTextNode(textContentbis);
+            afterSpan.appendChild(textNodebis);
+            while (i < parent.childNodes.length && parent.childNodes[i] !== range.endContainer) {
+                i++
+                if (parent.childNodes[i - 1] === range.endContainer) {
+                    afterSpan.appendChild(parent.childNodes[i].cloneNode())
+                }
+            }
+            if (grandParent !== container && grandParent !== null) {
+                const beforeSpanBis = document.createElement('span');
+                const afterSpanBis = document.createElement('span');
+                beforeSpanBis.appendChild(beforeSpan);
+                afterSpanBis.appendChild(afterSpan);
+
+                const fragment = document.createDocumentFragment();
+                fragment.appendChild(beforeSpanBis);
+                fragment.appendChild(newFragment);
+                fragment.appendChild(afterSpanBis);
+
+                container?.insertBefore(fragment, grandParent);
+                container?.removeChild(grandParent);
+            } else {
+                console.log("here")
+                const fragment = document.createDocumentFragment();
+                fragment.appendChild(beforeSpan);
+                fragment.appendChild(newFragment);
+                fragment.appendChild(afterSpan);
+
+                container?.insertBefore(fragment, parent);
+                container?.removeChild(parent);
+            }  
+        }     
+    } else {
+        // Insert the cleaned content
+        range.insertNode(newFragment);
+    }
+    
+    // Normalize to clean up adjacent text nodes
+    const editor = document.getElementById('editor'); // Assuming 'editor' is the container
+    if (editor) {
+        editor.normalize();
+    }
+
+    // Clear selection after operation
+    selection.removeAllRanges();
+}    
+
+handleRemoveStyle() {
+    const container = document.getElementById('editor');
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+
+    const range = selection.getRangeAt(0);
+
+    const hasStyleToRemove = (node: Node): boolean => {
+        if (node instanceof HTMLElement && node.tagName === 'SPAN') {
+            return (
+                node.style.textDecoration.includes('underline') ||
+                node.style.fontWeight === 'bold' ||
+                node.style.fontStyle === 'italic'
+            );
+        }
+        return false;
+    };
+
+    const removeStylesFromNode = (node: Node): Node => {
+        if (node.nodeType === Node.TEXT_NODE) {
+            return node.cloneNode();
+        }
+
+        if (node instanceof HTMLElement && hasStyleToRemove(node)) {
+            const fragment = document.createDocumentFragment();
+            node.childNodes.forEach(child => {
+                fragment.appendChild(removeStylesFromNode(child));
+            });
+            return fragment;
+        }
+
+        return node.cloneNode(true); // Clone non-styled elements as-is
+    };
+
+    const processAndRemoveStyles = (range: Range) => {
+        const originalContent = range.cloneContents();
+        range.deleteContents();
+
+        const newFragment = document.createDocumentFragment();
+        originalContent.childNodes.forEach(node => {
+            newFragment.appendChild(removeStylesFromNode(node));
+        });
+
+        range.insertNode(newFragment);
+    };
+
+    const cleanUpParentStyles = (range: Range) => {
+        let currentNode = range.commonAncestorContainer as HTMLElement;
+
+        while (currentNode && currentNode.tagName === 'SPAN') {
+            if (hasStyleToRemove(currentNode)) {
+                const parent = currentNode.parentElement;
+                const fragment = document.createDocumentFragment();
+
+                currentNode.childNodes.forEach(child => {
+                    fragment.appendChild(removeStylesFromNode(child));
+                });
+
+                parent?.insertBefore(fragment, currentNode);
+                parent?.removeChild(currentNode);
+            }
+            currentNode = currentNode.parentElement as HTMLElement;
+        }
+    };
+
+    processAndRemoveStyles(range);
+
+    // Handle styles applied to parent spans
+    cleanUpParentStyles(range);
+
+    // Normalize the container to merge text nodes
+    if (container) {
+        container.normalize();
+    }
+
+    // Clear the selection
+    selection.removeAllRanges();
+}

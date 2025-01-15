@@ -1,25 +1,220 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnInit, OnDestroy } from '@angular/core';
 import { ButtonEditorComponent } from "../../shared/button-editor/button-editor.component";
+import { Book } from '../../models';
+import { BookService } from '../../book.service';
+import { Page } from '../../models/page.model';
 
 @Component({
   selector: 'app-text-editor',
   standalone: true,
   imports: [ButtonEditorComponent],
   template: `
-  <div class="w-96 h-96 ml-72 mt-14" >
+  <div class="w-1/2 h-96 ml-72 mt-14" >
     <div id="toolbar"> 
       <app-button-editor name="bold" (boutonClicked)="handleBoldEvent()"/>
       <app-button-editor name="italic" (boutonClicked)="handleItalicEvent()"/>
       <app-button-editor name="underline" (boutonClicked)="handleUnderlineEventNew()"/>
+      <app-button-editor name="remove style" (boutonClicked)="handleRemoveStyle()"/>
+      <app-button-editor name="size +" (boutonClicked)="adjustSelectionFontSize('increase')"/>
+      <app-button-editor name="size -" (boutonClicked)="adjustSelectionFontSize('decrease')"/>
     </div> 
-    <div id="editor" contenteditable="true" style="border: 1px solid #ccc; padding: 10px;"> Start typing here... </div>
+    <div id="editor" contenteditable="true" class="w-full h-96 p-4 border-4" (change)="checkOverflow()"></div>
+    @if (this.bookService.bookSelected()!.pages.length !== this.bookService.pageSelected()?.number) {
+        <app-button-editor name="new page" (boutonClicked)="handleNewPage()" />
+    }
   </div>
   `,
   styles: ``
 })
-export class TextEditorComponent {
+export class TextEditorComponent implements OnDestroy {
+    bookDefault = new Book("default", "root")
+
+    ngOnInit() {
+        const editor = document.getElementById("editor");
+        if (editor === null) { return }
+        const numberOfPage = this.bookService.bookSelected()!._pages.length;
+        if (numberOfPage > 0) {
+            this.bookService.bookSelected()!._pages[numberOfPage - 1]._content.childNodes.forEach(node => {
+                editor.appendChild(node)
+            })
+        } else {
+            const node = document.createElement("div");
+            const newPage = new Page(0, node, this.bookService.bookSelected()!.title);
+            this.bookService.bookSelected()?.pages.push(newPage)
+            this.bookService.selectPage(newPage);
+        }
+    }
+
+    ngOnDestroy(): void {
+        if (this.bookService.bookSelected()!.pages.length !== this.bookService.pageSelected()?.number) {
+            this.handleNewPage()
+        } else {
+            const editor = document.getElementById("editor");
+            if (editor === null) { 
+                return; 
+            }
+            const container = document.createElement('div');
+                editor.childNodes.forEach(node => {
+                    container.appendChild(node);
+                })
+            const numberCurrentPage = this.bookService.pageSelected()?.number;
+            if (numberCurrentPage !== undefined) {
+            this.bookService.bookSelected()!.pages[numberCurrentPage].content = container;
+                }
+            }
+    }
+
+    checkOverflow() {
+        const editor = document.getElementById("editor");
+        if (editor === null) { return }
+
+        if (editor.scrollHeight > editor.clientHeight) {
+            this.handleNewPage();
+        }
+    }
+
+    handleNewPage() {
+        const editor = document.getElementById("editor");
+        if (editor === null) { 
+            return; 
+        }
+        console.log(editor)
+        const container = document.createElement('div');
+            editor.childNodes.forEach((node, index) => {
+                container.appendChild(node);
+                console.log(`node ${index} :`)
+                console.log(node)
+            })
+        console.log(container)
+        const numberCurrentPage = this.bookService.pageSelected()?.number;
+        if (numberCurrentPage !== undefined) {
+            this.bookService.bookSelected()!.pages[numberCurrentPage].content = container;
+        }
+
+        const numberNextPage = this.bookService.bookSelected()!._pages.length;
+        const node = document.createElement("div"); 
+        const newPage: Page = new Page(numberNextPage, node, this.bookService.bookSelected()!._parent!)
+        this.bookService.bookSelected()!._pages.push(newPage);
+
+        const page = this.bookService.bookSelected()?.pages[numberNextPage];
+        if (page) {
+        this.bookService.selectPage(page);
+        }
+
+    }
+
+    // createPage(node: Node) {
+    //     if (this.bookService.bookSelected() !== null) {
+    //       const numberNextPage = this.bookService.bookSelected()!._pages.length;
+    //       const newPage: Page = new Page(numberNextPage, node, this.bookService.bookSelected()!._parent!)
+    //       this.bookService.bookSelected()!._pages.push(newPage);
+    //     }       
+    //   }
+
+    constructor (public bookService: BookService) {}
+
+    adjustSelectionFontSize(action: string) {
+        // const editor = document.getElementById('editor');
+        // if (editor) {
+        //     editor.style.fontSize = "16px";
+        // }
+
+        const selection = window.getSelection();
+
+        if (!selection || selection.rangeCount === 0) return;
+    
+        if (!selection.rangeCount) {
+            console.error("No selection detected!");
+            return;
+        }
+    
+        const range = selection.getRangeAt(0);
+    
+        // Ensure the range is not collapsed
+        if (range.collapsed) {
+            console.error("Selection is collapsed, nothing to adjust.");
+            return;
+        }
+    
+        // Wrap the selection with a span
+        const span = document.createElement("span");   
+        const currentFontSize = window.getComputedStyle(range.startContainer.parentElement!).fontSize;
+        const fontSizeValue = parseFloat(currentFontSize);
+    
+        // Determine the new font size based on the action
+        let newFontSize;
+        if (action === "increase") {
+            newFontSize = fontSizeValue + 2; // Increase by 2 units
+        } else if (action === "decrease") {
+            newFontSize = Math.max(1, fontSizeValue - 2); // Decrease by 2 units, min 1
+        } else {
+            console.error("Invalid action. Use 'increase' or 'decrease'.");
+            return;
+        }
+    
+        // Apply the new font size to the span
+        span.style.fontSize = `${newFontSize}px`;
+    
+        // Replace the selected content with the span
+        range.surroundContents(span);
+    
+        // Re-select the span's contents
+        const newRange = document.createRange();
+        newRange.selectNodeContents(span);
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+    }
+    
+
+    handleRemoveStyle() {
+        const container = document.getElementById('editor');
+
+        const range = document.createRange();
+        range.setStart(container?.firstChild!, 0);
+        range.setEnd(container?.lastChild!, 0)
+
+
+        // Regular process
+        const originalContent = range.cloneContents();
+        range.deleteContents();
+
+        const processNode = (node: Node): Node => {
+            if (node.nodeType === Node.TEXT_NODE) {
+                return node.cloneNode()
+            }
+
+            if (node instanceof HTMLElement) {
+                if (node.tagName === 'SPAN') {
+                    // Remove bold spans
+                    const fragment = document.createDocumentFragment();
+                    node.childNodes.forEach(child => {
+                        fragment.appendChild(processNode(child));
+                    });
+                    return fragment;
+                } else {
+                return node.cloneNode(true);
+                }
+            }
+            return node.cloneNode(true);
+        };
+
+        const newFragment = document.createDocumentFragment();
+        originalContent.childNodes.forEach(node => {
+            newFragment.appendChild(processNode(node));
+        });
+
+        range.insertNode(newFragment);
+
+        // Normalize the parent container to clean up text nodes
+        const editor = document.getElementById('editor'); // Assuming 'editor' is the container
+        if (editor) {
+            editor.normalize();
+        }
+        // selection.removeAllRanges();
+    }
 
   handleBoldEvent() {
+    const container = document.getElementById('editor');
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) return;
 
@@ -29,9 +224,12 @@ export class TextEditorComponent {
       let currentNode: Node | null = node;
       while (currentNode) {
           if (currentNode instanceof HTMLElement) {
-              if (window.getComputedStyle(currentNode).fontWeight.includes('bold')) {
+              if (currentNode.style.fontWeight.includes('bold')) {
                   return true;
               }
+              if (currentNode === container) { 
+                break; 
+            }
           }
           currentNode = currentNode.parentNode;
       }
@@ -39,11 +237,11 @@ export class TextEditorComponent {
   };
 
   // Check if either the start or end containers or their ancestors have bold
-  const hasboldd = hasboldStyle(range.startContainer) || hasboldStyle(range.endContainer);
+  const hasbold = hasboldStyle(range.startContainer) || hasboldStyle(range.endContainer);
 
-  if (hasboldd && range.startContainer === range.endContainer && range.startContainer.nodeType === Node.TEXT_NODE) {
+  if (hasbold && range.startContainer === range.endContainer && range.startContainer.nodeType === Node.TEXT_NODE) {
       const textNode = range.startContainer;
-      const parentToRemove = textNode.parentNode as HTMLElement;
+      let parentToRemove = textNode.parentNode as HTMLElement;
       const parentOfParent = parentToRemove.parentElement;
               
       if ((range.startOffset > 0 || range.endOffset < textNode.textContent!.length) && parentOfParent !== null) {
@@ -66,26 +264,33 @@ export class TextEditorComponent {
               afterSpan.textContent = textNode.textContent!.substring(range.endOffset);
               parentOfParent.insertBefore(afterSpan, parentToRemove);
           }
+          
           parentOfParent.removeChild(parentToRemove);
           parentOfParent.normalize();
 
-          // parent.removeChild(textNode);
-          // parentOfParent?.removeChild(parent);
           selection.removeAllRanges();
           return;
       }
-      if (parentToRemove.tagName === 'SPAN' && parentToRemove.style.fontWeight === 'bold') {
-          const parent = parentToRemove.parentNode;
-          if (parent) {
-              while (parentToRemove.firstChild) {
-                  parent.insertBefore(parentToRemove.firstChild, parentToRemove);
-              }
-              parent.removeChild(parentToRemove);
-              parent.normalize();
-          }
-          return;
+      while (parentToRemove) {
+        if (parentToRemove.tagName === 'SPAN' && parentToRemove.style.fontWeight === 'bold') {
+            let parent = parentToRemove.parentNode;
+            if (parent) {
+                while (parentToRemove.firstChild) {
+                    parent.insertBefore(parentToRemove.firstChild, parentToRemove);
+                }
+                parent.removeChild(parentToRemove);
+                parent.normalize();
+            }
+            return;
         }
+        if (parentToRemove === container) { 
+            break; 
+        }
+        if (parentToRemove.parentElement !== null) {
+            parentToRemove = parentToRemove.parentElement;
+        }   
     }
+}
 
     // Regular processing for other cases
     const originalContent = range.cloneContents();
@@ -105,11 +310,7 @@ export class TextEditorComponent {
                 });
                 return fragment;
             } else {
-              const span = document.createElement('span');
-              span.textContent = node.textContent;
-              span.style.textDecoration = node.style.textDecoration;
-              span.style.fontStyle = node.style.fontStyle;
-              return span;
+              return node.cloneNode(true);
             }
         }
         return node.cloneNode(true);
@@ -134,7 +335,7 @@ export class TextEditorComponent {
   }
 
   handleItalicEvent() {
-    
+    const container = document.getElementById('editor');
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) return;
 
@@ -147,6 +348,9 @@ export class TextEditorComponent {
               if (window.getComputedStyle(currentNode).fontStyle.includes('italic')) {
                   return true;
               }
+              if (currentNode === container) { 
+                break; 
+            }
           }
           currentNode = currentNode.parentNode;
       }
@@ -158,8 +362,8 @@ export class TextEditorComponent {
 
   if (hasitalicd && range.startContainer === range.endContainer && range.startContainer.nodeType === Node.TEXT_NODE) {
       const textNode = range.startContainer;
-      const parentToRemove = textNode.parentNode as HTMLElement;
-      const parentOfParent = parentToRemove.parentElement;
+      let parentToRemove = textNode.parentNode as HTMLElement;
+      let parentOfParent = parentToRemove.parentElement;
               
       if ((range.startOffset > 0 || range.endOffset < textNode.textContent!.length) && parentOfParent !== null) {
           // Create three spans: before selection, selection, and after selection
@@ -181,25 +385,34 @@ export class TextEditorComponent {
               afterSpan.textContent = textNode.textContent!.substring(range.endOffset);
               parentOfParent.insertBefore(afterSpan, parentToRemove);
           }
+
           parentOfParent.removeChild(parentToRemove);
           parentOfParent.normalize();
 
-          // parent.removeChild(textNode);
-          // parentOfParent?.removeChild(parent);
           selection.removeAllRanges();
           return;
       }
-      if (parentToRemove.tagName === 'SPAN' && parentToRemove.style.fontStyle === 'italic') {
-          const parent = parentToRemove.parentNode;
-          if (parent) {
-              while (parentToRemove.firstChild) {
-                  parent.insertBefore(parentToRemove.firstChild, parentToRemove);
-              }
-              parent.removeChild(parentToRemove);
-              parent.normalize();
-          }
-          return;
+      
+      while (parentToRemove) {
+        if (parentToRemove.tagName === 'SPAN' && parentToRemove.style.fontStyle === 'italic') {
+            let parent = parentToRemove.parentNode;
+            if (parent) {
+                while (parentToRemove.firstChild) {
+                    parent.insertBefore(parentToRemove.firstChild, parentToRemove);
+                }
+                parent.removeChild(parentToRemove);
+                parent.normalize();
+            }
+            return;
         }
+        if (parentToRemove === container) { 
+            break; 
+        }
+        if (parentToRemove.parentElement !== null) {
+            parentToRemove = parentToRemove.parentElement;
+        }   
+      }
+      
     }
 
     // Regular processing for other cases
@@ -220,11 +433,7 @@ export class TextEditorComponent {
                 });
                 return fragment;
             } else {
-              const span = document.createElement('span');
-              span.textContent = node.textContent;
-              span.style.textDecoration = node.style.textDecoration;
-              span.style.fontWeight = node.style.fontWeight;
-              return span;
+              return node.cloneNode(true);
             }
         }
         return node.cloneNode(true);
@@ -250,6 +459,7 @@ export class TextEditorComponent {
 
 
   handleUnderlineEventNew() {
+    const container = document.getElementById('editor');
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) return;
 
@@ -262,6 +472,9 @@ export class TextEditorComponent {
               if (window.getComputedStyle(currentNode).textDecoration.includes('underline')) {
                   return true;
               }
+              if (currentNode === container) { 
+                break; 
+            }
           }
           currentNode = currentNode.parentNode;
       }
@@ -273,7 +486,7 @@ export class TextEditorComponent {
 
   if (hasUnderlined && range.startContainer === range.endContainer && range.startContainer.nodeType === Node.TEXT_NODE) {
       const textNode = range.startContainer;
-      const parentToRemove = textNode.parentNode as HTMLElement;
+      let parentToRemove = textNode.parentNode as HTMLElement;
       const parentOfParent = parentToRemove.parentElement;
               
       if ((range.startOffset > 0 || range.endOffset < textNode.textContent!.length) && parentOfParent !== null) {
@@ -296,25 +509,32 @@ export class TextEditorComponent {
               afterSpan.textContent = textNode.textContent!.substring(range.endOffset);
               parentOfParent.insertBefore(afterSpan, parentToRemove);
           }
+
           parentOfParent.removeChild(parentToRemove);
           parentOfParent.normalize();
 
-          // parent.removeChild(textNode);
-          // parentOfParent?.removeChild(parent);
           selection.removeAllRanges();
           return;
       }
-      if (parentToRemove.tagName === 'SPAN' && parentToRemove.style.textDecoration === 'underline') {
-          const parent = parentToRemove.parentNode;
-          if (parent) {
-              while (parentToRemove.firstChild) {
-                  parent.insertBefore(parentToRemove.firstChild, parentToRemove);
-              }
-              parent.removeChild(parentToRemove);
-              parent.normalize();
-          }
-          return;
+      while (parentToRemove) {
+        if (parentToRemove.tagName === 'SPAN' && parentToRemove.style.textDecoration === 'underline') {
+            let parent = parentToRemove.parentNode;
+            if (parent) {
+                while (parentToRemove.firstChild) {
+                    parent.insertBefore(parentToRemove.firstChild, parentToRemove);
+                }
+                parent.removeChild(parentToRemove);
+                parent.normalize();
+            }
+            return;
         }
+        if (parentToRemove === container) { 
+            break; 
+        }
+        if (parentToRemove.parentElement !== null) {
+            parentToRemove = parentToRemove.parentElement;
+        }   
+    }
     }
 
     // Regular processing for other cases
@@ -335,11 +555,7 @@ export class TextEditorComponent {
                 });
                 return fragment;
             } else {
-              const span = document.createElement('span');
-              span.textContent = node.textContent;
-              span.style.fontStyle = node.style.fontStyle;
-              span.style.fontStyle = node.style.fontStyle;
-              return span;
+              return node.cloneNode(true);
             }
         }
         return node.cloneNode(true);

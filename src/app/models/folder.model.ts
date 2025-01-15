@@ -8,9 +8,9 @@ export class Folder {
         folders: [],
         books: []
     }
-    _parent: Folder | string = '';
+    _parent: string = '';
 
-    constructor(name: string, parent: Folder | string) {
+    constructor(name: string, parent: string) {
         this._id = uuidv4();
         this._name = name;
         this._parent = parent;
@@ -30,6 +30,14 @@ export class Folder {
 
     get items(): folderOrganisator{
         return this._items;
+    }
+
+    get parent(): string{
+        return this._parent;
+    }
+
+    set parent(parent: string) {
+        this._parent = parent;
     }
 
     addBook(book: Book) {

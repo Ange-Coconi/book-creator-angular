@@ -1,15 +1,17 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Folder } from './folder.model';
+import { Page } from './page.model';
 
 export class Book {
     _id: string;
     _title: string;
-    _content?: string;
-    _parent: Folder | string = '';
+    _pages: Page[] = [];
+    _parent: string = '';
 
-    constructor(title: string, parent: Folder | string) {
+    constructor(title: string, parent: string) {
         this._id = uuidv4();
         this._title = title;
+        this._pages = [];
         this._parent = parent;
     }
 
@@ -25,11 +27,19 @@ export class Book {
         this._title = title;
     }
 
-    get content(): string | undefined{
-        return this._content;
+    get pages(): Page[]{
+        return this._pages;
     }
 
-    set content(content: string) {
-        this._content = content;
+    set pages(pages: Page[]) {
+        this._pages = pages;
+    }
+
+    get parent(): string{
+        return this._parent;
+    }
+
+    set parent(parent: string) {
+        this._parent = parent;
     }
 }
