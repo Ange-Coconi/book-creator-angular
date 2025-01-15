@@ -12,31 +12,32 @@ import { Page } from '../../models/page.model';
   imports: [BookComponent, FolderComponent, CommonModule, PageComponent],
   providers: [],
   template: `
-    <div class="fixed top-14 left-0 w-64 h-full bg-slate-900/75 text-white">
+    <div class="fixed top-14 left-0 w-64 h-full bg-slate-900/75 text-white overflow-y-scroll">
       <div class="flex justify-center items-center border-y-4 mb-3">
         <h2 class="text-xl py-2">Library</h2>
       </div>
       @if (this.bookService.bookSelected() === null) {
-        <div class="flex justify-center items-center mb-2">
-          <button class="block px-2 py-2 border rounded-md shadow-md hover:opacity-80" (click)="handleCreateANewBook()">Create a new Book</button>
-        </div>
+        <div class="flex justify-evenly items-center mb-2">
+          <div id="menuDelete" class="hidden justify-center items-center mb-2 z-10">
+            <button class="block px-2 py-2 border rounded-md shadow-md hover:opacity-80" (click)="handleDeleteElement()">delete</button>
+          </div>
+          <button id="buttonCreateBook" class="px-2 py-2 border rounded-md shadow-md hover:opacity-80" (click)="handleCreateANewBook()">Create a new Book</button>
           @if (this.prev !== null) {
-            <div class="flex justify-center items-center">
-              <button class="block px-2 py-2 border rounded-md shadow-md hover:opacity-80" (click)="handleClickBack()">Back</button>
-            </div>
-        }
+            <button class="px-2 py-2 border rounded-md shadow-md hover:opacity-80" (click)="handleClickBack()">Back</button>
+          }
+        </div>
         @for (folder of actualDisplay.folders; track folder.id) {
-          <app-folder [folder]="folder" (folderClicked)="handleFolderClicked($event)" />
+          <app-folder [id]="folder.id" (contextmenu)="onRightClick($event)" [folder]="folder" (folderClicked)="handleFolderClicked($event)" />
         }
         @for (book of actualDisplay.books; track book.id) {
-          <app-book [book]="book" (bookClicked)="handleBookClicked($event)"/>
+          <app-book [id]="book.id" (contextmenu)="onRightClick($event)" [book]="book" (bookClicked)="handleBookClicked($event)"/>
         }
         @if (windowCreationNewBook) {
-          <div class="fixed w-full h-full z-20">
-            <form (submit)="handleSubmitTitle($event)" class="fixed top-1/2 left-1/2 w-1/5 h-1/5 z-30 flex flex-col justify-center items-center">
-              <label for="title">Title</label>
-              <input type="text" id="title" name="title" required/>
-              <button class="px-2 py-2 border rounded-md shadow-md hover:opacity-80" type="submit">ok</button>
+          <div class="fixed w-full h-full top-0 left-0 z-20 bg-slate-900/75">
+            <form (submit)="handleSubmitTitle($event)" class="fixed top-1/3 left-1/3 w-2/6 h-2/6 z-30 border rounded-xl flex flex-col justify-center items-center">
+              <label class="mb-2 text-xl" for="title">Title</label>
+              <input class="mb-12 w-96 px-2 py-1 text-black" type="text" id="title" name="title" required/>
+              <button class="text-lg px-4 py-2 border rounded-md shadow-md hover:opacity-80" type="submit">ok</button>
             </form>
           </div>
         }
@@ -54,6 +55,7 @@ import { Page } from '../../models/page.model';
         
       }
       
+
     </div>
   `
 })
@@ -63,6 +65,54 @@ export class BibliothekComponent implements OnInit {
   actualFolderName: string = 'root';
   prev: string | null = null;
   windowCreationNewBook: boolean = false;
+  elementToDelete: HTMLElement | null = null;
+
+  onRightClick(event: MouseEvent): void { 
+    event.preventDefault();
+    const targetElement = event.target as HTMLElement;
+    this.elementToDelete = targetElement;
+    const menuDelete = document.getElementById('menuDelete');
+    const buttonCreateBook = document.getElementById('buttonCreateBook');
+    if (menuDelete !== null && buttonCreateBook !== null) {
+      menuDelete.style.display = 'flex'; 
+      buttonCreateBook.style.display = 'none'
+      // menuDelete.style.left = `${event.pageX + 70}px`; 
+      // menuDelete.style.top = `${event.pageY - 70}px`;
+    }
+
+    document.addEventListener('click', () => this.hidewindowElementToDelete());
+  }
+
+  handleDeleteElement() {
+    if (this.elementToDelete !== null) {
+      
+      const name = this.elementToDelete.innerHTML
+      const index = this.actualDisplay.books.findIndex(book => {
+        return book.title === name;
+      })
+      if (index !== -1) {
+        this.actualDisplay.books.splice(index, 1)
+      } else {
+        const indexFolder = this.actualDisplay.folders.findIndex(folder => {
+          return folder.name === name;
+        })
+        if (indexFolder !== -1) {
+          this.actualDisplay.folders.splice(indexFolder, 1)
+        }
+      }
+    }
+    this.hidewindowElementToDelete();
+  }
+
+  hidewindowElementToDelete() {
+    const menuDelete = document.getElementById('menuDelete');
+    const buttonCreateBook = document.getElementById('buttonCreateBook');
+    if (menuDelete !== null && buttonCreateBook !== null) {
+      menuDelete.style.display = 'none';
+      buttonCreateBook.style.display = 'block'
+    document.removeEventListener('click', () => this.hidewindowElementToDelete())
+    }
+  }
  
   handleClickBackFromBook() { 
     this.bookService.retrieveEditorContent()
@@ -100,7 +150,7 @@ export class BibliothekComponent implements OnInit {
     this.windowCreationNewBook = false; // trigger window for title
     const title = event.target.title.value  // retrieve user input for title
     const newBook: Book = new Book(title, this.actualFolderName) // initialize a new instance of Book
-    this.actualDisplay.books.push(newBook);   // add the new Book to the display
+    // this.actualDisplay.books.push(newBook);   // add the new Book to the display
     
     if (this.actualFolderName === "root") {
       this.bibliothek.books.push(newBook);    // add the new Book to library if in the root Folder
