@@ -4,13 +4,15 @@ import { Book } from './book.model';
 
 export class Page {
     _id: string;
-    _number: number;
+    _name: string;
+    _index: number;
     _content: string;
     _parent: string = '';
 
-    constructor(number: number, content: string, parent: string) {
+    constructor(index: number, content: string, parent: string) {
         this._id = uuidv4();
-        this._number = number;
+        this._name = index.toString();
+        this._index = index;
         this._content = content;
         this._parent = parent;
     }
@@ -19,12 +21,20 @@ export class Page {
         return this._id;
     }
 
-    get number(): number {
-        return this._number
+    get name(): string{
+        return this._name;
     }
 
-    set number(number: number) {
-        this._number = number;
+    set name(name: string) {
+        this._name = name;
+    }
+
+    get index(): number {
+        return this._index
+    }
+
+    set index(index: number) {
+        this._index = index;
     }
 
     get content(): string{
