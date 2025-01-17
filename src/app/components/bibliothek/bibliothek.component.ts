@@ -13,44 +13,40 @@ import { setActiveConsumer } from '@angular/core/primitives/signals';
   imports: [BookComponent, FolderComponent, CommonModule, PageComponent],
   providers: [],
   template: `
-    <!-- <div 
-      class="block top-14 left-0 w-64 h-full bg-slate-900/75 text-white overflow-y-scroll transition-transform duration-500 ease-in-out"
-      [ngClass]="{ '-translate-x-56': bookService.bookSelected() && !isHovered, 'translate-x-0': isHovered }"
-      (mouseenter)="onMouseEnter()"
-      (mouseleave)="onMouseLeave()"
-      > -->
     <div class="fixed left-0 w-64 h-full bg-slate-900/75 text-white overflow-y-scroll transition-transform duration-500 ease-in-out">
       <div class="flex justify-center items-center border-y-4 mb-3">
         <h2 class="text-xl py-2">{{ this.bookService.bookSelected() ? this.bookService.bookSelected()?.title : "Library"}}</h2>
       </div>
-      @if (this.bookService.bookSelected() === null) {
-        <div class="flex justify-evenly items-center mb-2">
-          <button id="menuDelete" class="hidden px-2 py-2 mb-2 z-10 border rounded-md shadow-md hover:opacity-80" (click)="handleDeleteElement()">delete</button>
-          <button id="buttonCreateBook" class="px-2 py-2 border rounded-md shadow-md hover:opacity-80" (click)="bookService.handleCreateANewBook()">Create a new Book</button>
-          @if (this.prev !== null) {
-            <button class="px-2 py-2 border rounded-md shadow-md hover:opacity-80" (click)="handleClickBack()">Back</button>
+      @if (!bookService.viewBook()) {
+        @if (this.bookService.bookSelected() === null) {
+          <div class="flex justify-evenly items-center mb-2">
+            <button id="menuDelete" class="hidden px-2 py-2 mb-2 z-10 border rounded-md shadow-md hover:opacity-80" (click)="handleDeleteElement()">delete</button>
+            <button id="buttonCreateBook" class="px-2 py-2 border rounded-md shadow-md hover:opacity-80" (click)="bookService.handleCreateANewBook()">Create a new Book</button>
+            @if (this.prev !== null) {
+              <button class="px-2 py-2 border rounded-md shadow-md hover:opacity-80" (click)="handleClickBack()">Back</button>
+            }
+          </div>
+          @for (folder of bookService.actualDisplay().folders; track folder.id) {
+            <app-folder [id]="folder.id" (contextmenu)="onRightClickBookAndFolder($event)" [folder]="folder" (folderClicked)="handleFolderClicked($event)" />
           }
-        </div>
-        @for (folder of bookService.actualDisplay().folders; track folder.id) {
-          <app-folder [id]="folder.id" (contextmenu)="onRightClickBookAndFolder($event)" [folder]="folder" (folderClicked)="handleFolderClicked($event)" />
-        }
-        @for (book of bookService.actualDisplay().books; track book.id) {
-          <app-book [id]="book.id" (contextmenu)="onRightClickBookAndFolder($event)" [book]="book" (bookClicked)="handleBookClicked($event)"/>
-        }
-        
-      } @else {
-        <div class="flex justify-evenly items-center mb-2">
-          <button class="block px-1 py-1 border rounded-md shadow-md hover:opacity-80" (click)="handleClickBackFromBook()">Back</button>
-          <button id="buttonNewPage" class="block px-1 py-1 ml-1 mr-1 border rounded-md shadow-md hover:opacity-80" (click)="this.bookService.handleNewPage()" >new page</button>
-          <button id="buttonDeletePage" class="hidden px-1 py-1 border rounded-md shadow-md hover:opacity-80" (click)="this.bookService.handleDeletePage()" >delete page</button>
-        </div>
-        @if (this.bookService.bookSelected()!.pages.length > 0) {
-          @for (page of this.bookService.bookSelected()!.pages; track page.id) {
-          <app-page [page]="page" (contextmenu)="onRightClickPage($event)" (pageClicked)="handlePageClicked($event)"/>
+          @for (book of bookService.actualDisplay().books; track book.id) {
+            <app-book [id]="book.id" (contextmenu)="onRightClickBookAndFolder($event)" [book]="book" (bookClicked)="handleBookClicked($event)"/>
           }
+          
         } @else {
-          <p>No page yet !</p>
-        }
+          <div class="flex justify-evenly items-center mb-2">
+            <button class="block px-1 py-1 border rounded-md shadow-md hover:opacity-80" (click)="handleClickBackFromBook()">Back</button>
+            <button id="buttonNewPage" class="block px-1 py-1 ml-1 mr-1 border rounded-md shadow-md hover:opacity-80" (click)="this.bookService.handleNewPage()" >new page</button>
+            <button id="buttonDeletePage" class="hidden px-1 py-1 border rounded-md shadow-md hover:opacity-80" (click)="this.bookService.handleDeletePage()" >delete page</button>
+          </div>
+          @if (this.bookService.bookSelected()!.pages.length > 0) {
+            @for (page of this.bookService.bookSelected()!.pages; track page.id) {
+            <app-page [page]="page" (contextmenu)="onRightClickPage($event)" (pageClicked)="handlePageClicked($event)"/>
+            }
+          } @else {
+            <p>No page yet !</p>
+          }
+      }
         
       }
     </div>
@@ -60,29 +56,10 @@ import { setActiveConsumer } from '@angular/core/primitives/signals';
 })
 export class BibliothekComponent implements OnInit {
   prev: string | null = null;
-
   elementToDelete: HTMLElement | null = null;
   pageToDelete: HTMLElement | null = null;
-  isHovered = false;
-  hoverTimeout: any;
+
   
-
-  onMouseEnter(): void {
-    this.isHovered = true;
-
-    // Clear any existing timeout to prevent hiding while hovering
-    if (this.hoverTimeout) {
-      clearTimeout(this.hoverTimeout);
-    }
-  }
-
-  onMouseLeave(): void {
-    // Delay hiding the menu by 1 second after the mouse leaves
-    this.hoverTimeout = setTimeout(() => {
-      this.isHovered = false;
-    }, 1000);
-  }
-
   onRightClickPage(event: MouseEvent): void {
     event.preventDefault();
     const targetElement = event.target as HTMLElement;
@@ -176,9 +153,9 @@ export class BibliothekComponent implements OnInit {
     }
     
     this.bookService.retrieveEditorContent()
-    console.log(pageClicked)
+
     const page = this.bookService.bookSelected()?.pages[pageClicked.index];
-    console.log(page)
+
     if (page) {
       this.bookService.selectPage(page);
 

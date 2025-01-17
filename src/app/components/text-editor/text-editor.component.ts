@@ -12,7 +12,7 @@ import { Page } from '../../models/page.model';
 
     
     <div class="containerEditor">
-        <div id="editor" contenteditable="true" class="w-full h-full block p-4 border-4 border-slate-900/75" (change)="this.bookService.checkOverflow()"></div>
+        <div id="editor" contenteditable="true" class="w-full h-full block p-4 border-4 border-slate-900/75 overflow-y-scroll" (change)="this.bookService.checkOverflow()"></div>
     </div>
     
   </div>

@@ -3,15 +3,20 @@ import { BibliothekComponent } from '../../components/bibliothek/bibliothek.comp
 import { TextEditorComponent } from '../../components/text-editor/text-editor.component';
 import { BookService } from '../../book.service';
 import { ToolbarComponent } from "../../components/toolbar/toolbar.component";
+import { ViewBookComponent } from "../../components/view-book/view-book.component";
 
 @Component({
   selector: 'app-creation-book',
-  imports: [BibliothekComponent, TextEditorComponent, ToolbarComponent],
+  imports: [BibliothekComponent, TextEditorComponent, ToolbarComponent, ViewBookComponent],
   template: `
     <div class="relative top-14 grid-container">
       <app-bibliothek class="sidebar"/>
       @if (this.bookService.bookSelected() !== null) {
-        <app-text-editor class="editor"/>
+        @if (bookService.viewBook()) {
+          <app-view-book class="editor"/>
+        } @else {
+          <app-text-editor class="editor"/>
+        }
         <app-toolbar class="sidebar-right"/>
       }
       
@@ -34,21 +39,15 @@ import { ToolbarComponent } from "../../components/toolbar/toolbar.component";
     grid-template-columns: 1fr 5fr 1fr; /* Zwei Spalten: 1 Teil Sidebar, 3 Teile Content */
     grid-template-rows: 1fr; /* Automatische Höhe für Header und Footer */
     width: 100%;
-    max-width: 100% !important;
+    max-width: 100%;
     height: calc(100% - 56px);
-  }
-
-  .sidebar {
-    grid-area: sidebar;
+    min-height: calc(100% - 56px);
   }
 
   .editor {
     grid-area: editor;
     }
 
-  .sidebar-right {
-    grid-area: sidebar-right;
-  }
   `
 })
 export class CreationBookComponent {

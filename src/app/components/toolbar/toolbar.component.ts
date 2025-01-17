@@ -1,25 +1,39 @@
 import { Component } from '@angular/core';
 import { ButtonEditorComponent } from '../../shared/button-editor/button-editor.component';
 import { BookService } from '../../book.service';
+import { ViewService } from '../../view.service';
 
 @Component({
   selector: 'app-toolbar',
   imports: [ButtonEditorComponent],
   template: `
     <div id="toolbar" class="fixed w-48 h-full flex flex-col justify-center items-start mr-2"> 
-      <app-button-editor class="block w-full" name="bold" (boutonClicked)="handleBoldEvent()"/>
-      <app-button-editor class="block w-full" name="italic" (boutonClicked)="handleItalicEvent()"/>
-      <app-button-editor class="block w-full" name="underline" (boutonClicked)="handleUnderlineEventNew()"/>
-      <app-button-editor class="block w-full" name="remove style" (boutonClicked)="handleRemoveStyle()"/>
-      <app-button-editor class="block w-full" name="size +" (boutonClicked)="adjustSelectionFontSize('increase')"/>
-      <app-button-editor class="block w-full" name="size -" (boutonClicked)="adjustSelectionFontSize('decrease')"/>
+      @if (bookService.viewBook()) {
+        <app-button-editor class="absolute top-0 mt-8 w-full" name="Book Editor" (boutonClicked)="bookService.handleViewEditor()"/>
+        <div class="w-full mb-8 flex justify-between">
+            <app-button-editor class="block w-full" name="previous" (boutonClicked)="viewBook.handlePreviousPage()"/>
+            <app-button-editor class="block w-full" name="next" (boutonClicked)="viewBook.handleNextPage()"/>
+        </div>
+      } @else {
+        <app-button-editor class="absolute top-0 mt-8 w-full" name="View Book" (boutonClicked)="bookService.handleViewBook()"/>
+        <div class="w-full mb-8 flex justify-between">
+            <app-button-editor class="block w-full" name="previous" (boutonClicked)="bookService.handlePreviousPage()"/>
+            <app-button-editor class="block w-full" name="next" (boutonClicked)="bookService.handleNextPage()"/>
+        </div>
+        <app-button-editor class="block w-full" name="bold" (boutonClicked)="handleBoldEvent()"/>
+        <app-button-editor class="block w-full" name="italic" (boutonClicked)="handleItalicEvent()"/>
+        <app-button-editor class="block w-full" name="underline" (boutonClicked)="handleUnderlineEventNew()"/>
+        <app-button-editor class="block w-full" name="remove style" (boutonClicked)="handleRemoveStyle()"/>
+        <app-button-editor class="block w-full" name="size +" (boutonClicked)="adjustSelectionFontSize('increase')"/>
+        <app-button-editor class="block w-full" name="size -" (boutonClicked)="adjustSelectionFontSize('decrease')"/>
+      }
     </div> 
   `,
   styles: ``
 })
 export class ToolbarComponent {
 
-  constructor (public bookService: BookService) {}
+  constructor (public bookService: BookService, public viewBook: ViewService) {}
   
       adjustSelectionFontSize(action: string) {
   

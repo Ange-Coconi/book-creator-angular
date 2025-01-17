@@ -15,8 +15,9 @@ import { RouterOutlet } from '@angular/router';
   .main {
     top: 0;
     left: 0;
-    width: calc(100vw - 17px)
+    width: calc(100vw - 17px);
     height: 100vh;
+    min-height: 100vh;
   }
   `,
 })

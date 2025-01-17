@@ -1,6 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { Book, folderOrganisator } from './models';
 import { Page } from './models/page.model';
+import { ViewService } from './view.service';
 
 @Injectable({
   providedIn: 'root'
@@ -11,26 +12,76 @@ export class BookService {
   actualFolderName = signal<string>('root');
   bookSelected = signal<Book | null>(null);
   pageSelected = signal<Page | null>(null);
+  viewBook = signal<boolean>(false);
   indexBookSelected = signal<number>(0);
   windowCreationNewBook= signal<boolean>(false);
   titleTimeout: any;
+  viewService: ViewService;
   
   boundHandleClickElsewhere: (event: MouseEvent) => void;
 
-  constructor() {
+  constructor(viewService: ViewService) {
+    this.viewService = viewService;
     this.boundHandleClickElsewhere = this.handleClickElsewhere.bind(this);
    }
 
-  selectBook(book: Book | null) {
-    this.bookSelected.set(book);
+  handleViewBook() {
+    this.retrieveEditorContent();
+    this.viewBook.set(true);  
+
+    if (this.bookSelected()?.pages === undefined) return
+
+    this.viewService.ListOfPage.set(this.bookSelected()?.pages!)
+    
   }
 
-  selectPage(page: Page | null) {
-    this.pageSelected.set(page);
+  handleViewEditor() {
+    this.viewBook.set(false);
+    this.viewService.currentPage.set(-1);
+    this.viewService.ListOfPage.set([]);
   }
 
-  setIndex(index: number) {
-    this.indexBookSelected.set(index);
+  handlePreviousPage() {
+    const editor = document.getElementById("editor");
+    if (editor === null) { 
+        return; 
+    }
+
+    const indexCurrentPage = this.pageSelected()?.index;
+    if (indexCurrentPage === 0 || indexCurrentPage === undefined) {
+      return
+    }
+    this.retrieveEditorContent();
+
+    const page = this.bookSelected()?.pages[indexCurrentPage - 1];
+
+    if (page) {
+      this.selectPage(page);
+
+      editor.innerHTML = this.pageSelected()!.content
+    }
+  }
+
+  handleNextPage() {
+    const editor = document.getElementById("editor");
+    if (editor === null) { 
+        return; 
+    }
+    const indexCurrentPage = this.pageSelected()?.index;
+
+    if (indexCurrentPage === this.bookSelected()?.pages.length! - 1 || indexCurrentPage === undefined) {
+      return
+    }
+
+    this.retrieveEditorContent();
+
+    const page = this.bookSelected()?.pages[indexCurrentPage + 1];
+
+    if (page) {
+      this.selectPage(page);
+
+      editor.innerHTML = this.pageSelected()!.content
+    }
   }
 
   retrieveEditorContent() {
@@ -138,5 +189,17 @@ export class BookService {
     if (page) {
     this.selectPage(page);
     }
+  }
+
+  selectBook(book: Book | null) {
+    this.bookSelected.set(book);
+  }
+
+  selectPage(page: Page | null) {
+    this.pageSelected.set(page);
+  }
+
+  setIndex(index: number) {
+    this.indexBookSelected.set(index);
   }
 }
