@@ -9,8 +9,9 @@ import { ViewBookComponent } from "../../components/view-book/view-book.componen
   selector: 'app-creation-book',
   imports: [BibliothekComponent, TextEditorComponent, ToolbarComponent, ViewBookComponent],
   template: `
+    <app-bibliothek class=""/>
     <div class="relative top-14 grid-container">
-      <app-bibliothek class="sidebar"/>
+      
       @if (this.bookService.bookSelected() !== null) {
         @if (bookService.viewBook()) {
           <app-view-book class="editor"/>
@@ -35,8 +36,8 @@ import { ViewBookComponent } from "../../components/view-book/view-book.componen
   .grid-container {
     display: grid;
     grid-template-areas: 
-      "sidebar editor sidebar-right";
-    grid-template-columns: 1fr 5fr 1fr; /* Zwei Spalten: 1 Teil Sidebar, 3 Teile Content */
+      "editor sidebar-right";
+    grid-template-columns: 6fr 1fr; /* Zwei Spalten: 1 Teil Sidebar, 3 Teile Content */
     grid-template-rows: 1fr; /* Automatische Höhe für Header und Footer */
     width: 100%;
     max-width: 100%;
@@ -47,6 +48,10 @@ import { ViewBookComponent } from "../../components/view-book/view-book.componen
   .editor {
     grid-area: editor;
     }
+
+  .sidebar-right {
+    grid-area: sidebar-right;
+  }
 
   `
 })
