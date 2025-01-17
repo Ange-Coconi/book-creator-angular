@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, OnInit, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component} from '@angular/core';
 import { Book } from '../../models';
 import { BookService } from '../../book.service';
 import { Page } from '../../models/page.model';
@@ -12,7 +12,12 @@ import { Page } from '../../models/page.model';
 
     
     <div class="containerEditor">
-        <div id="editor" contenteditable="true" class="w-full h-full block p-4 border-4 border-slate-900/75 overflow-y-scroll" (change)="this.bookService.checkOverflow()"></div>
+        <div 
+          id="editor" 
+          contenteditable="true" class="w-full h-full block p-4 border-4 border-slate-900/75 overflow-y-scroll text-xs" 
+          (change)="this.bookService.checkOverflow()"
+          >
+        </div>
     </div>
     
   </div>
@@ -26,15 +31,15 @@ import { Page } from '../../models/page.model';
   }
   `
 })
-export class TextEditorComponent {
+export class TextEditorComponent implements AfterViewInit {
     bookDefault = new Book("default", "root")
 
-    ngOnInit() {
+    ngAfterViewInit() {
         const editor = document.getElementById("editor");
         if (editor === null) { return }
         const numberOfPage = this.bookService.bookSelected()!._pages.length;
         if (numberOfPage > 0) {
-            editor.innerHTML = this.bookService.bookSelected()!._pages[numberOfPage - 1]._content
+            editor.innerHTML = this.bookService.bookSelected()!._pages[0]._content
         } else {
             const newPage = new Page(0, '', this.bookService.bookSelected()!.title);
             this.bookService.bookSelected()?.pages.push(newPage)

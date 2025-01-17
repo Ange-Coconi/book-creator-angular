@@ -8,9 +8,11 @@ import { PageRectoVerso } from './models/page-recto-verso.model';
 export class ViewService {
   currentPage = signal<number>(-1)
   lisfOfPage = signal<Page[]>([])
-  reversedPageListRectoVerso = signal<Array<PageRectoVerso>>([]);
   pageListRectoVerso = signal<Array<PageRectoVerso>>([]);
   numberOfPage = signal<number>(0);
+  zIndexStackLeft = signal<number>(0);
+  zIndexStackRight = signal<number>(0);
+
 
   handleNextPage() {
     const bookHTML = document.getElementById('book');
@@ -20,46 +22,38 @@ export class ViewService {
     let idCurrentPage = '';
     if (this.currentPage() === -1) {
       idCurrentPage = 'cover';
-    } else if (this.currentPage() > this.reversedPageListRectoVerso().length + 1) {
+    } else if (this.currentPage() > this.pageListRectoVerso().length + 1) {
       return
-    } else if (this.currentPage() === this.reversedPageListRectoVerso().length) {
+    } else if (this.currentPage() === this.pageListRectoVerso().length) {
       idCurrentPage = 'back';
     } else {
       idCurrentPage = `page-${this.currentPage()}`;
     }
 
-    const variation = this.currentPage() + 1;
     const pageHTML = document.getElementById(idCurrentPage);
-    
+        
     if (!pageHTML) return
-    pageHTML.style.transform = `translateX(${variation}px) rotateY(${-180 + variation}deg)`;
 
-    if (this.currentPage() !== -1 && this.currentPage() !== this.reversedPageListRectoVerso().length) {
-
-      const contentPageHTML = document.getElementById(idCurrentPage + '-content')
-
-      if (!contentPageHTML) return
-      console.log(this.reversedPageListRectoVerso()[this.currentPage()])
-      console.log(this.reversedPageListRectoVerso()[this.currentPage()].verso._content)
-      contentPageHTML.innerHTML = this.reversedPageListRectoVerso()[this.currentPage()].verso._content;
-      contentPageHTML.style.backfaceVisibility = 'hidden';
-      contentPageHTML.style.transform = `translateX(-${variation}px) rotateY(${180 - variation}deg)`;
+    pageHTML.style.transform = `rotateY(-180deg)`;
+    if (this.currentPage() > -1 && this.currentPage() < this.numberOfPage() ) {
+      pageHTML.style.marginLeft = '';
+      pageHTML.style.marginRight = `${Math.floor(this.currentPage() / 3)}px`;
     }
-    
 
-    if (this.currentPage() <= this.reversedPageListRectoVerso().length ) {
+    this.zIndexNextPage(this.currentPage(), pageHTML);
+
+
+    if (this.currentPage() <= this.pageListRectoVerso().length ) {
       this.currentPage.set(this.currentPage() + 1)
     }
 
   }
 
   handlePreviousPage() {
-    console.log("when call :")
-    console.log(this.currentPage())
+
     const bookHTML = document.getElementById('book');
     if (!bookHTML) return
     bookHTML.style.transformOrigin = 'right'
-
 
     let idPreviousPage = ''
     if (this.currentPage() < -1) {
@@ -67,33 +61,77 @@ export class ViewService {
     }
     else if (this.currentPage() === 0) {
       idPreviousPage = 'cover';
-    } else if (this.currentPage() > this.reversedPageListRectoVerso().length) {
+    } else if (this.currentPage() > this.pageListRectoVerso().length) {
       idPreviousPage = 'back'
     } else {
       idPreviousPage = `page-${this.currentPage() - 1}`;
     }
-    console.log("here")
+
     const pageHTML = document.getElementById(idPreviousPage);
 
     if (!pageHTML) return
     pageHTML.style.transform = ``;
 
-    if (this.currentPage() > 0 && this.currentPage() < this.reversedPageListRectoVerso().length) {
-
-      const contentPageHTML = document.getElementById(idPreviousPage + '-content');
-      console.log(contentPageHTML)
-      if (!contentPageHTML) return
-      contentPageHTML.innerHTML = this.reversedPageListRectoVerso()[this.currentPage() - 1].recto._content;
-      contentPageHTML.style.backfaceVisibility = '';
-      contentPageHTML.style.transform = ``;
+    if (this.currentPage() > -1 && this.currentPage() < this.numberOfPage() ) {
+      pageHTML.style.marginLeft = `${Math.floor(this.currentPage() / 3)}px`;
+      pageHTML.style.marginRight = '';
     }
+
+    this.zIndexPreviousPage(this.currentPage(), pageHTML)
 
     if (this.currentPage() > -1) {
       this.currentPage.set(this.currentPage() - 1)
     }
-    console.log("By the end :")
-    console.log(this.currentPage())
+
+  }
+
+  zIndexNextPage(pageIndex: number, pageHTML: HTMLElement) {
+    if (pageIndex === -1) {
+      this.zIndexStackLeft.set(0);
+    }
+
+    if (pageHTML) {
+      this.zIndexStackRight.set(this.zIndexStackRight() - 5)
+      this.zIndexStackLeft.set(this.zIndexStackLeft() + 5);
+      pageHTML.style.zIndex = this.zIndexStackLeft().toString();
+      console.log("left :")
+      console.log(this.zIndexStackLeft())
+      console.log("right :")
+      console.log(this.zIndexStackRight())
+      const rectoHTML = document.getElementById('page-' + pageIndex.toString() + '-recto')
+      const versoHTML = document.getElementById('page-' + pageIndex.toString() + '-verso')
+
+      if (rectoHTML && versoHTML) { 
+        rectoHTML.style.zIndex = (this.zIndexStackLeft() - 1).toString();
+        versoHTML.style.zIndex = (this.zIndexStackLeft() + 1).toString();
+      }
+    }
     
+  }
+
+  zIndexPreviousPage(pageIndex: number, pageHTML: HTMLElement) {
+    if (pageIndex > this.numberOfPage()) {
+      this.zIndexStackRight.set(0);
+    }
+
+    if (pageHTML) {
+      this.zIndexStackLeft.set(this.zIndexStackLeft() - 5);
+      this.zIndexStackRight.set(this.zIndexStackRight() + 5);
+      console.log("left :")
+      console.log(this.zIndexStackLeft())
+      console.log("right :")
+      console.log(this.zIndexStackRight())
+      pageHTML.style.zIndex = this.zIndexStackRight().toString();
+
+      const rectoHTML = document.getElementById('page-' + pageIndex.toString() + '-recto')
+      const versoHTML = document.getElementById('page-' + pageIndex.toString() + '-verso')
+    
+      if (rectoHTML && versoHTML) {   
+
+        rectoHTML.style.zIndex = (this.zIndexStackLeft() + 1).toString();
+        versoHTML.style.zIndex = (this.zIndexStackLeft() - 1).toString();
+      }
+    }
   }
 
 }

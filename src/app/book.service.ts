@@ -36,6 +36,7 @@ export class BookService {
   }
 
   handleViewEditor() {
+    console.log(this.bookSelected())
     this.viewBook.set(false);
     this.viewService.currentPage.set(-1);
     this.viewService.lisfOfPage.set([]);

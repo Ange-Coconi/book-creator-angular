@@ -1,12 +1,11 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, signal, SimpleChanges } from '@angular/core';
-import { Item, Book, Folder, folderOrganisator } from '../../models';
+import { Component, OnInit } from '@angular/core';
+import { Book, Folder, folderOrganisator } from '../../models';
 import { BookComponent } from '../../components/book/book.component';
 import { FolderComponent } from '../../components/folder/folder.component';
 import { CommonModule } from '@angular/common';
 import { PageComponent } from '../page/page.component';
 import { BookService } from '../../book.service';
 import { Page } from '../../models/page.model';
-import { setActiveConsumer } from '@angular/core/primitives/signals';
 import { ViewService } from '../../view.service';
 
 @Component({
@@ -14,7 +13,12 @@ import { ViewService } from '../../view.service';
   imports: [BookComponent, FolderComponent, CommonModule, PageComponent],
   providers: [],
   template: `
-    <div class="fixed left-0 w-64 h-full bg-slate-900/75 text-white overflow-y-scroll transition-transform duration-500 ease-in-out">
+    <div 
+      class="fixed left-0 top-14 w-64 h-full z-50 bg-slate-900/75 text-white overflow-y-scroll transition-transform duration-500 ease-in-out"
+      [ngClass]="{'-translate-x-56': bookService.viewBook() && !isHovered,'translate-x-0': isHovered}"
+      (mouseenter)="onMouseEnter()"
+      (mouseleave)="onMouseLeave()"
+      >
       <div class="flex justify-center items-center border-y-4 mb-3">
         <h2 class="text-xl py-2">{{ this.bookService.bookSelected() ? this.bookService.bookSelected()?.title : "Library"}}</h2>
       </div>
@@ -60,7 +64,24 @@ export class BibliothekComponent implements OnInit {
   prev: string | null = null;
   elementToDelete: HTMLElement | null = null;
   pageToDelete: HTMLElement | null = null;
+  isHovered = false;
+  hoverTimeout: any;
 
+  onMouseEnter(): void {
+    this.isHovered = true;
+
+    // Clear any existing timeout to prevent hiding while hovering
+    if (this.hoverTimeout) {
+      clearTimeout(this.hoverTimeout);
+    }
+  }
+
+  onMouseLeave(): void {
+    // Delay hiding the menu by 1 second after the mouse leaves
+    this.hoverTimeout = setTimeout(() => {
+      this.isHovered = false;
+    }, 1000);
+  }
   
   onRightClickPage(event: MouseEvent): void {
     event.preventDefault();
@@ -186,15 +207,20 @@ export class BibliothekComponent implements OnInit {
     const indexBook = this.bookService.actualDisplay().books.findIndex(book => {
       return book.title === bookClicked.title;
     })
+
     this.bookService.setIndex(indexBook);
+
     if (this.bookService.actualFolderName() === "root") {
       this.bookService.selectBook(this.bookService.bibliothek().books[indexBook])
+
     } else {
       const indexFolder = this.bookService.bibliothek().folders.findIndex(folder => {
         return folder.name === this.bookService.actualFolderName();
       })
       this.bookService.selectBook(this.bookService.bibliothek().folders[indexFolder].items.books[indexBook])
     } 
+    
+    this.bookService.selectPage(this.bookService.bookSelected()?.pages[0]!)
 
   }
 
@@ -221,6 +247,22 @@ export class BibliothekComponent implements OnInit {
     library.books[0]._pages.push(new Page(2, 'page 3 page 3 page 3 page 3', "The Great Gatsby"))
     library.books[0]._pages.push(new Page(3, 'page 4 page 4 page 4 page 4', "The Great Gatsby"))
     library.books[0]._pages.push(new Page(4, 'page 5 page 5 page 5 page 5', "The Great Gatsby"))
+    library.books[0]._pages.push(new Page(5, 'page 1 page 1 page 1 page 1', "The Great Gatsby"))
+    library.books[0]._pages.push(new Page(6, 'page 2 page 2 page 2 page 2', "The Great Gatsby"))
+    library.books[0]._pages.push(new Page(7, 'page 3 page 3 page 3 page 3', "The Great Gatsby"))
+    library.books[0]._pages.push(new Page(8, 'page 4 page 4 page 4 page 4', "The Great Gatsby"))
+    library.books[0]._pages.push(new Page(9, 'page 5 page 5 page 5 page 5', "The Great Gatsby"))
+    library.books[0]._pages.push(new Page(10, 'page 1 page 1 page 1 page 1', "The Great Gatsby"))
+    library.books[0]._pages.push(new Page(11, 'page 2 page 2 page 2 page 2', "The Great Gatsby"))
+    library.books[0]._pages.push(new Page(12, 'page 3 page 3 page 3 page 3', "The Great Gatsby"))
+    library.books[0]._pages.push(new Page(13, 'page 4 page 4 page 4 page 4', "The Great Gatsby"))
+    library.books[0]._pages.push(new Page(14, 'page 5 page 5 page 5 page 5', "The Great Gatsby"))
+    library.books[0]._pages.push(new Page(15, 'page 1 page 1 page 1 page 1', "The Great Gatsby"))
+    library.books[0]._pages.push(new Page(16, 'page 2 page 2 page 2 page 2', "The Great Gatsby"))
+    library.books[0]._pages.push(new Page(17, 'page 3 page 3 page 3 page 3', "The Great Gatsby"))
+    library.books[0]._pages.push(new Page(18, 'page 4 page 4 page 4 page 4', "The Great Gatsby"))
+    library.books[0]._pages.push(new Page(19, 'page 5 page 5 page 5 page 5', "The Great Gatsby"))
+    library.books[0]._pages.push(new Page(20, 'page 5 page 5 page 5 page 5', "The Great Gatsby"))
     
     // Create and populate folders
     // const classics = new Folder("Classics", "root");
