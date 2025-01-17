@@ -2,3 +2,11 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+
+:root {
+    --dark-color: gray;
+    --subtle-color: rgb(208, 213, 213);
+    --main-color: rgb(249, 255, 255);
+}
