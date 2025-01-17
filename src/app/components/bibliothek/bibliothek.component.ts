@@ -7,6 +7,7 @@ import { PageComponent } from '../page/page.component';
 import { BookService } from '../../book.service';
 import { Page } from '../../models/page.model';
 import { setActiveConsumer } from '@angular/core/primitives/signals';
+import { ViewService } from '../../view.service';
 
 @Component({
   selector: 'app-bibliothek',
@@ -47,7 +48,8 @@ import { setActiveConsumer } from '@angular/core/primitives/signals';
             <p>No page yet !</p>
           }
       }
-        
+      } @else {
+        <h4 class="block w-full text-center">{{ "number of page r/v : " + viewService.numberOfPage()}}</h4>
       }
     </div>
   `,
@@ -207,47 +209,52 @@ export class BibliothekComponent implements OnInit {
     const library: folderOrganisator = {
       books: [
         new Book("The Great Gatsby", "root"),
-        new Book("1984", "root"),
-        new Book("Pride and Prejudice", "root"),
-        new Book("To Kill a Mockingbird", "root"),
-        new Book("The Catcher in the Rye", "root"),
+        // new Book("1984", "root"),
+        // new Book("Pride and Prejudice", "root"),
+        // new Book("To Kill a Mockingbird", "root"),
+        // new Book("The Catcher in the Rye", "root"),
       ],
       folders: []
     };
+    library.books[0]._pages.push(new Page(0, 'page 1 page 1 page 1 page 1', "The Great Gatsby"))
+    library.books[0]._pages.push(new Page(1, 'page 2 page 2 page 2 page 2', "The Great Gatsby"))
+    library.books[0]._pages.push(new Page(2, 'page 3 page 3 page 3 page 3', "The Great Gatsby"))
+    library.books[0]._pages.push(new Page(3, 'page 4 page 4 page 4 page 4', "The Great Gatsby"))
+    library.books[0]._pages.push(new Page(4, 'page 5 page 5 page 5 page 5', "The Great Gatsby"))
     
     // Create and populate folders
-    const classics = new Folder("Classics", "root");
-    classics.addBook(new Book("Moby Dick", "Classics"));
-    classics.addBook(new Book("Don Quixote", "Classics"));
-    classics.addBook(new Book("War and Peace", "Classics"));
+    // const classics = new Folder("Classics", "root");
+    // classics.addBook(new Book("Moby Dick", "Classics"));
+    // classics.addBook(new Book("Don Quixote", "Classics"));
+    // classics.addBook(new Book("War and Peace", "Classics"));
     
-    const sciFi = new Folder("Science Fiction", "root");
-    sciFi.addBook(new Book("Dune", "Science Fiction"));
-    sciFi.addBook(new Book("Foundation", "Science Fiction"));
-    sciFi.addBook(new Book("Neuromancer", "Science Fiction"));
+    // const sciFi = new Folder("Science Fiction", "root");
+    // sciFi.addBook(new Book("Dune", "Science Fiction"));
+    // sciFi.addBook(new Book("Foundation", "Science Fiction"));
+    // sciFi.addBook(new Book("Neuromancer", "Science Fiction"));
     
-    const mystery = new Folder("Mystery", "root");
-    mystery.addBook(new Book("The Maltese Falcon", "Mystery"));
-    mystery.addBook(new Book("The Big Sleep", "Mystery"));
-    mystery.addBook(new Book("Gone Girl", "Mystery"));
+    // const mystery = new Folder("Mystery", "root");
+    // mystery.addBook(new Book("The Maltese Falcon", "Mystery"));
+    // mystery.addBook(new Book("The Big Sleep", "Mystery"));
+    // mystery.addBook(new Book("Gone Girl", "Mystery"));
     
-    const fantasy = new Folder("Fantasy", "root");
-    fantasy.addBook(new Book("The Hobbit", "Fantasy"));
-    fantasy.addBook(new Book("A Game of Thrones", "Fantasy"));
-    fantasy.addBook(new Book("The Name of the Wind", "Fantasy"));
+    // const fantasy = new Folder("Fantasy", "root");
+    // fantasy.addBook(new Book("The Hobbit", "Fantasy"));
+    // fantasy.addBook(new Book("A Game of Thrones", "Fantasy"));
+    // fantasy.addBook(new Book("The Name of the Wind", "Fantasy"));
     
-    const contemporary = new Folder("Contemporary", "root");
-    contemporary.addBook(new Book("The Alchemist", "Contemporary"));
-    contemporary.addBook(new Book("The Kite Runner", "Contemporary"));
-    contemporary.addBook(new Book("Life of Pi", "Contemporary"));
+    // const contemporary = new Folder("Contemporary", "root");
+    // contemporary.addBook(new Book("The Alchemist", "Contemporary"));
+    // contemporary.addBook(new Book("The Kite Runner", "Contemporary"));
+    // contemporary.addBook(new Book("Life of Pi", "Contemporary"));
     
-    // Add folders to the library
-    library.folders.push(classics, sciFi, mystery, fantasy, contemporary);
+    // // Add folders to the library
+    // library.folders.push(classics, sciFi, mystery, fantasy, contemporary);
 
     this.bookService.bibliothek.set({...library});
     this.bookService.actualDisplay.set({...library});
   }
 
-  constructor (public bookService: BookService) {}
+  constructor (public bookService: BookService, public viewService: ViewService) {}
 
 }
