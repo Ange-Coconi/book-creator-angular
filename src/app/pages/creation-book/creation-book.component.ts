@@ -22,7 +22,7 @@ import { ViewBookComponent } from "../../components/view-book/view-book.componen
       }
       
       @if (this.bookService.windowCreationNewBook()) {
-          <div class="fixed w-full h-full top-0 left-0 z-20 bg-slate-900/75">
+          <div class="fixed w-full h-full top-0 left-0 z-20 bg-slate-900/75 text-white">
             <form id="windowTitle" (submit)="this.bookService.handleSubmitTitle($event)" class="fixed top-1/3 left-1/3 w-2/6 h-2/6 z-30 border rounded-xl flex flex-col justify-center items-center">
               <label class="mb-2 text-xl" for="title">Title</label>
               <input class="mb-12 w-96 px-2 py-1 text-black" type="text" id="title" name="title" required/>
