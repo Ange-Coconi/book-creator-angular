@@ -1,11 +1,11 @@
-import { Component, OnInit, Renderer2, ViewChild, ViewContainerRef } from '@angular/core';
+import { Component, OnDestroy, OnInit, Renderer2, ViewChild, ViewContainerRef } from '@angular/core';
 import { BookService } from '../../book.service';
 import { BookPageComponent } from '../book-page/book-page.component';
-import { Page } from '../../models/page.model';
 import { ViewService } from '../../view.service';
 import { CommonModule } from '@angular/common';
 import { PageSwallow } from '../../models/page-swallow.model';
 import { PageRectoVerso } from '../../models/page-recto-verso.model';
+import { Page } from '../../models/page.model';
 
 @Component({
   selector: 'app-view-book',
@@ -15,17 +15,16 @@ import { PageRectoVerso } from '../../models/page-recto-verso.model';
       <div #book id="book" class="relative h-96 w-72"  style="margin-right: calc((800px - 2 * 288px) / 2)">
         <span class="shadow-lg absolute bottom-0 w-80 -rotate-6"></span>
         <div id="back" class="back absolute w-full h-full top-0 left-0 origin-left transition-transform duration-2000 scale-102 border-2 border-black bg-[--dark-color]"></div>
-        @for (page of reversedPageList; track page._id) {
+        @for (page of viewService.reversedPageListRectoVerso(); track page.index) {
           <app-book-page 
-          [id]="'page-' + page._index.toString()"
+          [id]="'page-' + page.index.toString()"
           class="page absolute w-full h-full top-0 left-0 origin-left transition-transform duration-2000"
-          [ngClass]="'page-' + page._index.toString()"
+          [ngClass]="'page-' + page.index.toString()"
           [data]="page"
           />
         }
         <div id="cover" class="absolute w-full h-full top-0 left-0 origin-left transition-transform duration-2000 scale-103 -rotate-[4] border-2 border-black bg-[--dark-color]"></div>
       </div>
-      @if (false) {<app-book-page/>}
     </div>
   `,
   styles: `
@@ -45,30 +44,41 @@ import { PageRectoVerso } from '../../models/page-recto-verso.model';
     }
   `
 })
-export class ViewBookComponent implements OnInit {
-
-  reversedPageList: Array<PageSwallow> = [];
-  reversedPageListRectoVerso: Array<PageRectoVerso> = [];
+export class ViewBookComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
-    this.reversedPageList = this.viewService.ListOfPage().slice().reverse().map(item => ({ ...item }));
 
     const pageSwallowDefault: PageSwallow= {_id: '', _name: '', _index: 0, _content: '', _parent: ''}
-    this.reversedPageList.forEach(page => {
+
+    this.viewService.lisfOfPage().forEach(page => {
       if (page._index % 2 === 0) {
-        const pageRectoVerso = {
+        const pageRectoVerso: PageRectoVerso = {
           index: page._index / 2,
           recto: {...page},
           verso: {...pageSwallowDefault}
         }
-        this.reversedPageListRectoVerso.push(pageRectoVerso);
+        this.viewService.pageListRectoVerso().push(pageRectoVerso);
+
       } else {
-        this.reversedPageListRectoVerso[Math.floor(page._index / 2)].verso = {...page};
+        this.viewService.pageListRectoVerso()[Math.floor(page._index / 2)].verso = {...page};
       }
-    })
+  })
 
-
+    this.viewService.reversedPageListRectoVerso.set(this.viewService.pageListRectoVerso().slice().reverse().map(pageRectoVerso => {
+      return {
+        index : pageRectoVerso.index,
+        recto: {...pageRectoVerso.recto},
+        verso: {...pageRectoVerso.verso}
+      }   
+    }));
+    this.viewService.numberOfPage.set(this.viewService.reversedPageListRectoVerso().length);
   } 
+
+  ngOnDestroy(): void {
+      this.viewService.pageListRectoVerso.set([]);
+      this.viewService.reversedPageListRectoVerso.set([]);
+      this.viewService.numberOfPage.set(0);
+  }
 
   constructor (public bookService: BookService, public viewService: ViewService, public renderer: Renderer2) {}
 

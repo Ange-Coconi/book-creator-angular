@@ -31,14 +31,14 @@ export class BookService {
 
     if (this.bookSelected()?.pages === undefined) return
 
-    this.viewService.ListOfPage.set(this.bookSelected()?.pages!)
+    this.viewService.lisfOfPage.set(this.bookSelected()?.pages!)
     
   }
 
   handleViewEditor() {
     this.viewBook.set(false);
     this.viewService.currentPage.set(-1);
-    this.viewService.ListOfPage.set([]);
+    this.viewService.lisfOfPage.set([]);
   }
 
   handlePreviousPage() {
