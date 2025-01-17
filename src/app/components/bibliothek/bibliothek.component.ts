@@ -14,7 +14,7 @@ import { ViewService } from '../../view.service';
   providers: [],
   template: `
     <div 
-      class="fixed left-0 top-14 w-64 h-full z-50 bg-slate-900/75 text-white overflow-y-scroll transition-transform duration-500 ease-in-out"
+      class="fixed left-0 top-14 w-64 h-full pb-14 z-50 bg-slate-900/75 text-white overflow-y-scroll transition-transform duration-500 ease-in-out"
       [ngClass]="{'-translate-x-56': bookService.viewBook() && !isHovered,'translate-x-0': isHovered}"
       (mouseenter)="onMouseEnter()"
       (mouseleave)="onMouseLeave()"
