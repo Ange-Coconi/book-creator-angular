@@ -10,6 +10,7 @@ import { ViewBookComponent } from "../../components/view-book/view-book.componen
   imports: [BibliothekComponent, TextEditorComponent, ToolbarComponent, ViewBookComponent],
   template: `
     <app-bibliothek class=""/>
+    <div class="background"></div>
     <div class="relative top-14 grid-container">
       
       @if (this.bookService.bookSelected() !== null) {
@@ -21,10 +22,13 @@ import { ViewBookComponent } from "../../components/view-book/view-book.componen
         <app-toolbar class="sidebar-right"/>
       }
       
-      @if (this.bookService.windowCreationNewBook()) {
-          <div class="fixed w-full h-full top-0 left-0 z-20 bg-slate-900/75 text-white">
-            <form id="windowTitle" (submit)="this.bookService.handleSubmitTitle($event)" class="fixed top-1/3 left-1/3 w-2/6 h-2/6 z-30 border rounded-xl flex flex-col justify-center items-center">
-              <label class="mb-2 text-xl" for="title">Title</label>
+      @if (this.bookService.windowCreationNewBook() || this.bookService.windowCreationFolder()) {
+          <div class="fixed w-full h-full top-0 left-0 z-[52] bg-slate-900/75 text-white">
+            <form 
+              id="windowTitle" 
+              (submit)="this.bookService.windowCreationNewBook() ? this.bookService.handleSubmitTitle($event) : this.bookService.handleSubmitName($event)" 
+              class="fixed top-1/3 left-1/3 w-2/6 h-2/6 z-[55] border rounded-xl flex flex-col justify-center items-center">
+              <label class="mb-2 text-xl" for="title">{{this.bookService.windowCreationNewBook() ? "Title" : "Name"}}</label>
               <input class="mb-12 w-96 px-2 py-1 text-black" type="text" id="title" name="title" required/>
               <button class="text-lg px-4 py-2 border rounded-md shadow-md hover:opacity-80" type="submit">ok</button>
             </form>
@@ -53,6 +57,17 @@ import { ViewBookComponent } from "../../components/view-book/view-book.componen
     grid-area: sidebar-right;
   }
 
+  .background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    min-height: 100vh;
+    z-index: -50;
+    background: url('src/app/assets/bg-dashboard.jpg') no-repeat center center fixed;
+    background-size: cover;   
+  }
   `
 })
 export class CreationBookComponent {
