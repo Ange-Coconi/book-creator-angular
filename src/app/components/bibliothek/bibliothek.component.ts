@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Book, Folder, folderOrganisator } from '../../models';
 import { BookComponent } from '../../components/book/book.component';
 import { FolderComponent } from '../../components/folder/folder.component';
@@ -26,8 +26,9 @@ import { ViewService } from '../../view.service';
         @if (this.bookService.bookSelected() === null) {
           <div class="flex justify-evenly items-center mb-2">
             <button id="menuDelete" class="hidden px-2 py-2 mb-2 z-10 border rounded-md shadow-md hover:opacity-80" (click)="handleDeleteElement()">delete</button>
+            <button id="buttonCreateFolder" class="px-2 py-2 border rounded-md shadow-md hover:opacity-80" (click)="bookService.handleCreateFolder()">Folder</button>
             <button id="buttonCreateBook" class="px-2 py-2 border rounded-md shadow-md hover:opacity-80" (click)="bookService.handleCreateANewBook()">Create a new Book</button>
-            @if (this.prev !== null) {
+            @if (bookService.prev() !== null) {
               <button class="px-2 py-2 border rounded-md shadow-md hover:opacity-80" (click)="handleClickBack()">Back</button>
             }
           </div>
@@ -35,7 +36,7 @@ import { ViewService } from '../../view.service';
             <app-folder [id]="folder.id" (contextmenu)="onRightClickBookAndFolder($event)" [folder]="folder" (folderClicked)="handleFolderClicked($event)" />
           }
           @for (book of bookService.actualDisplay().books; track book.id) {
-            <app-book [id]="book.id" (contextmenu)="onRightClickBookAndFolder($event)" [book]="book" (bookClicked)="handleBookClicked($event)"/>
+            <app-book [id]="book.id" (contextmenu)="onRightClickBookAndFolder($event)" [book]="book" (bookClicked)="bookService.handleBookClicked($event)"/>
           }
           
         } @else {
@@ -60,8 +61,7 @@ import { ViewService } from '../../view.service';
   styles: `
 `
 })
-export class BibliothekComponent implements OnInit {
-  prev: string | null = null;
+export class BibliothekComponent implements OnInit, OnDestroy {
   elementToDelete: HTMLElement | null = null;
   pageToDelete: HTMLElement | null = null;
   isHovered = false;
@@ -115,9 +115,11 @@ export class BibliothekComponent implements OnInit {
     this.elementToDelete = targetElement;
     const menuDelete = document.getElementById('menuDelete');
     const buttonCreateBook = document.getElementById('buttonCreateBook');
-    if (menuDelete !== null && buttonCreateBook !== null) {
+    const buttonCreateFolder = document.getElementById('buttonCreateFolder');
+    if (menuDelete !== null && buttonCreateBook !== null && buttonCreateFolder !== null) {
       menuDelete.style.display = 'block'; 
-      buttonCreateBook.style.display = 'none'
+      buttonCreateBook.style.display = 'none';
+      buttonCreateFolder.style.display = 'none';
     }
 
     document.addEventListener('click', () => this.hidewindowElementToDelete());
@@ -147,9 +149,11 @@ export class BibliothekComponent implements OnInit {
   hidewindowElementToDelete() {
     const menuDelete = document.getElementById('menuDelete');
     const buttonCreateBook = document.getElementById('buttonCreateBook');
-    if (menuDelete !== null && buttonCreateBook !== null) {
+    const buttonCreateFolder = document.getElementById('buttonCreateFolder');
+    if (menuDelete !== null && buttonCreateBook !== null && buttonCreateFolder !== null) {
       menuDelete.style.display = 'none';
       buttonCreateBook.style.display = 'block'
+      buttonCreateFolder.style.display = 'block';
     document.removeEventListener('click', () => this.hidewindowElementToDelete())
     }
   }
@@ -186,115 +190,41 @@ export class BibliothekComponent implements OnInit {
     }
   }
 
-
   handleClickBack() {
-    if (this.prev !== "root" && this.prev !==null) {
+    if (this.bookService.prev() !== "root" && this.bookService.prev() !== null) {
       const index = this.bookService.bibliothek().folders.findIndex(folder => {  // find the index of the current Folder 
-        return folder._name === this.prev;
+        return folder._name === this.bookService.prev();
       });
       this.bookService.actualDisplay.set(this.bookService.bibliothek().folders[index]._items)
-      this.bookService.actualFolderName.set(this.prev);
-      this.prev = this.bookService.bibliothek().folders[index]._name;
-    } else if (this.prev === "root") {
+      this.bookService.actualFolderName.set(this.bookService.prev()!);
+      this.bookService.prev.set(this.bookService.bibliothek().folders[index]._name);
+    } else if (this.bookService.prev() === "root") {
       this.bookService.actualDisplay.set(this.bookService.bibliothek());
-      this.prev = null;
+      this.bookService.prev.set(null);
       this.bookService.actualFolderName.set("root")
     }
-  }
-
-
-  handleBookClicked(bookClicked: Book) {
-    const indexBook = this.bookService.actualDisplay().books.findIndex(book => {
-      return book.title === bookClicked.title;
-    })
-
-    this.bookService.setIndex(indexBook);
-
-    if (this.bookService.actualFolderName() === "root") {
-      this.bookService.selectBook(this.bookService.bibliothek().books[indexBook])
-
-    } else {
-      const indexFolder = this.bookService.bibliothek().folders.findIndex(folder => {
-        return folder.name === this.bookService.actualFolderName();
-      })
-      this.bookService.selectBook(this.bookService.bibliothek().folders[indexFolder].items.books[indexBook])
-    } 
-    
-    this.bookService.selectPage(this.bookService.bookSelected()?.pages[0]!)
-
   }
 
   handleFolderClicked(folderClicked: Folder) {
     const indexFolderToDisplay = this.bookService.bibliothek().folders.findIndex(folder => folder.name === folderClicked.name);
     this.bookService.actualDisplay.set(this.bookService.bibliothek().folders[indexFolderToDisplay].items);
     this.bookService.actualFolderName.set(this.bookService.bibliothek().folders[indexFolderToDisplay]._name);
-    this.prev = this.bookService.bibliothek().folders[indexFolderToDisplay]._parent;
+    this.bookService.prev.set(this.bookService.bibliothek().folders[indexFolderToDisplay]._parent);
   }
 
   ngOnInit() {
-    const library: folderOrganisator = {
-      books: [
-        new Book("The Great Gatsby", "root"),
-        // new Book("1984", "root"),
-        // new Book("Pride and Prejudice", "root"),
-        // new Book("To Kill a Mockingbird", "root"),
-        // new Book("The Catcher in the Rye", "root"),
-      ],
-      folders: []
-    };
-    library.books[0]._pages.push(new Page(0, 'page 1 page 1 page 1 page 1', "The Great Gatsby"))
-    library.books[0]._pages.push(new Page(1, 'page 2 page 2 page 2 page 2', "The Great Gatsby"))
-    library.books[0]._pages.push(new Page(2, 'page 3 page 3 page 3 page 3', "The Great Gatsby"))
-    library.books[0]._pages.push(new Page(3, 'page 4 page 4 page 4 page 4', "The Great Gatsby"))
-    library.books[0]._pages.push(new Page(4, 'page 5 page 5 page 5 page 5', "The Great Gatsby"))
-    library.books[0]._pages.push(new Page(5, 'page 1 page 1 page 1 page 1', "The Great Gatsby"))
-    library.books[0]._pages.push(new Page(6, 'page 2 page 2 page 2 page 2', "The Great Gatsby"))
-    library.books[0]._pages.push(new Page(7, 'page 3 page 3 page 3 page 3', "The Great Gatsby"))
-    library.books[0]._pages.push(new Page(8, 'page 4 page 4 page 4 page 4', "The Great Gatsby"))
-    library.books[0]._pages.push(new Page(9, 'page 5 page 5 page 5 page 5', "The Great Gatsby"))
-    library.books[0]._pages.push(new Page(10, 'page 1 page 1 page 1 page 1', "The Great Gatsby"))
-    library.books[0]._pages.push(new Page(11, 'page 2 page 2 page 2 page 2', "The Great Gatsby"))
-    library.books[0]._pages.push(new Page(12, 'page 3 page 3 page 3 page 3', "The Great Gatsby"))
-    library.books[0]._pages.push(new Page(13, 'page 4 page 4 page 4 page 4', "The Great Gatsby"))
-    library.books[0]._pages.push(new Page(14, 'page 5 page 5 page 5 page 5', "The Great Gatsby"))
-    library.books[0]._pages.push(new Page(15, 'page 1 page 1 page 1 page 1', "The Great Gatsby"))
-    library.books[0]._pages.push(new Page(16, 'page 2 page 2 page 2 page 2', "The Great Gatsby"))
-    library.books[0]._pages.push(new Page(17, 'page 3 page 3 page 3 page 3', "The Great Gatsby"))
-    library.books[0]._pages.push(new Page(18, 'page 4 page 4 page 4 page 4', "The Great Gatsby"))
-    library.books[0]._pages.push(new Page(19, 'page 5 page 5 page 5 page 5', "The Great Gatsby"))
-    library.books[0]._pages.push(new Page(20, 'page 5 page 5 page 5 page 5', "The Great Gatsby"))
     
-    // Create and populate folders
-    // const classics = new Folder("Classics", "root");
-    // classics.addBook(new Book("Moby Dick", "Classics"));
-    // classics.addBook(new Book("Don Quixote", "Classics"));
-    // classics.addBook(new Book("War and Peace", "Classics"));
-    
-    // const sciFi = new Folder("Science Fiction", "root");
-    // sciFi.addBook(new Book("Dune", "Science Fiction"));
-    // sciFi.addBook(new Book("Foundation", "Science Fiction"));
-    // sciFi.addBook(new Book("Neuromancer", "Science Fiction"));
-    
-    // const mystery = new Folder("Mystery", "root");
-    // mystery.addBook(new Book("The Maltese Falcon", "Mystery"));
-    // mystery.addBook(new Book("The Big Sleep", "Mystery"));
-    // mystery.addBook(new Book("Gone Girl", "Mystery"));
-    
-    // const fantasy = new Folder("Fantasy", "root");
-    // fantasy.addBook(new Book("The Hobbit", "Fantasy"));
-    // fantasy.addBook(new Book("A Game of Thrones", "Fantasy"));
-    // fantasy.addBook(new Book("The Name of the Wind", "Fantasy"));
-    
-    // const contemporary = new Folder("Contemporary", "root");
-    // contemporary.addBook(new Book("The Alchemist", "Contemporary"));
-    // contemporary.addBook(new Book("The Kite Runner", "Contemporary"));
-    // contemporary.addBook(new Book("Life of Pi", "Contemporary"));
-    
-    // // Add folders to the library
-    // library.folders.push(classics, sciFi, mystery, fantasy, contemporary);
+  }
 
-    this.bookService.bibliothek.set({...library});
-    this.bookService.actualDisplay.set({...library});
+  ngOnDestroy(): void {
+    this.bookService.retrieveEditorContent()
+    this.bookService.bookSelected.set(null)
+    this.bookService.pageSelected.set(null)
+    this.bookService.actualDisplay.set(this.bookService.bibliothek())
+    this.bookService.actualFolderName.set('root');
+    this.bookService.viewBook.set(false);
+    this.bookService.indexBookSelected.set(0);
+
   }
 
   constructor (public bookService: BookService, public viewService: ViewService) {}

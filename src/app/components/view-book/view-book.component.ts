@@ -13,7 +13,7 @@ import { Page } from '../../models/page.model';
   template: `
     <div id="bookContainer" class="w-[1100px] h-[600px] mt-4 m-auto flex justify-end items-center">
       <div class="containerFor3D">
-      <div #book id="book" class="relative h-[550px] w-[400px]"  style="margin-right: calc((800px - 2 * 288px) / 2)">
+      <div id="book" class="shadow preserve3D relative h-[550px] w-[400px]" style="margin-right: calc((800px - 2 * 288px) / 2)">
         <div 
           id="cover" 
           class="absolute w-full h-full top-0 left-0 origin-left transition-transform duration-2000 border-2 rounded-r border-black bg-orange-800"
@@ -24,7 +24,7 @@ import { Page } from '../../models/page.model';
         @for (page of viewService.pageListRectoVerso(); track page.index) {
           <app-book-page 
           [id]="'page-' + page.index.toString()"
-          class="page absolute w-[96%] h-[96%] top-[2%] left-0 origin-left transition-transform duration-2000 "
+          class="page preserve3D absolute w-[96%] h-[96%] top-[2%] left-0 origin-left transition-transform duration-2000 "
           [ngClass]="'page-' + page.index.toString()"
           [style.zIndex]="(viewService.numberOfPage() - page.index + 1) * 5"
           [ngStyle]="{
@@ -47,7 +47,6 @@ import { Page } from '../../models/page.model';
     .page {
       background: linear-gradient(to right, var(--subtle-color), 20%, var(--main-color));
       border: 1px solid black;
-      transform-style: preserve-3d;
     }
 
     #bookContainer {
@@ -61,8 +60,11 @@ import { Page } from '../../models/page.model';
       transition: transform 1s ease;
     }
 
-    #book {
+    .preserve3D {
       transform-style: preserve-3d;
+    }
+
+    .shadow {
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 0, 0, 0.7);
     }
 
@@ -97,6 +99,10 @@ export class ViewBookComponent implements OnInit, OnDestroy {
       this.viewService.pageListRectoVerso.set([]);
 
       this.viewService.numberOfPage.set(0);
+
+      if (this.viewService.boxShadowTimeout) {
+        clearTimeout(this.viewService.boxShadowTimeout);
+      }
   }
 
   constructor (public bookService: BookService, public viewService: ViewService, public renderer: Renderer2) {}

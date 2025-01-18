@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import { Book, folderOrganisator } from './models';
+import { Book, Folder, folderOrganisator } from './models';
 import { Page } from './models/page.model';
 import { ViewService } from './view.service';
 
@@ -10,11 +10,14 @@ export class BookService {
   bibliothek = signal<folderOrganisator>({ books: [], folders: []});
   actualDisplay = signal<folderOrganisator>({ books: [], folders: []});
   actualFolderName = signal<string>('root');
+  prev = signal<string | null>(null);
   bookSelected = signal<Book | null>(null);
   pageSelected = signal<Page | null>(null);
   viewBook = signal<boolean>(false);
   indexBookSelected = signal<number>(0);
   windowCreationNewBook= signal<boolean>(false);
+  windowCreationFolder= signal<boolean>(false);
+  newFolderTimeout: any;
   titleTimeout: any;
   viewService: ViewService;
   
@@ -40,6 +43,27 @@ export class BookService {
     this.viewBook.set(false);
     this.viewService.currentPage.set(-1);
     this.viewService.lisfOfPage.set([]);
+  }
+
+  handleBookClicked(bookClicked: Book) {
+    const indexBook = this.actualDisplay().books.findIndex(book => {
+      return book.title === bookClicked.title;
+    })
+
+    this.setIndex(indexBook);
+
+    if (this.actualFolderName() === "root") {
+      this.selectBook(this.bibliothek().books[indexBook])
+
+    } else {
+      const indexFolder = this.bibliothek().folders.findIndex(folder => {
+        return folder.name === this.actualFolderName();
+      })
+      this.selectBook(this.bibliothek().folders[indexFolder].items.books[indexBook])
+    } 
+    
+    this.selectPage(this.bookSelected()?.pages[0]!)
+
   }
 
   handlePreviousPage() {
@@ -102,6 +126,27 @@ export class BookService {
     }
   }
 
+  handleSubmitName(event: any) {
+    event.preventDefault();
+    this.windowCreationFolder.set(false); // trigger window for title
+    const name = event.target.title.value  // retrieve user input for title
+    const newFolder: Folder = new Folder(name, this.prev() === null ? 'root' : this.prev()!) // initialize a new instance of Book
+    // this.actualDisplay.books.push(newBook);   // add the new Book to the display
+    
+    if (this.actualFolderName() === "root") {
+      this.bibliothek().folders.push(newFolder);    // add the new Book to library if in the root Folder
+    } else {
+      const index = this.bibliothek().folders.findIndex(folder => {  // find the index of the current Folder 
+        return folder._name === this.actualFolderName();
+      })
+
+      this.bibliothek().folders[index].items.folders.push(newFolder);  // add the book
+    }
+    if (this.newFolderTimeout) {
+      clearTimeout(this.newFolderTimeout)
+    }
+  }
+
   handleSubmitTitle(event: any) {
     event.preventDefault();
     this.windowCreationNewBook.set(false); // trigger window for title
@@ -123,6 +168,14 @@ export class BookService {
     }
   }
 
+  handleCreateFolder() {
+    this.windowCreationFolder.set(true);
+
+    this.newFolderTimeout = setTimeout(() => {
+      document.addEventListener('click', this.boundHandleClickElsewhere)
+    }, 500)  
+  }
+
   handleCreateANewBook() {
     this.windowCreationNewBook.set(true);
 
@@ -133,16 +186,25 @@ export class BookService {
 
   handleClickElsewhere(event: MouseEvent) {
 
-    const windowTitle = document.getElementById('windowTitle'); // Replace with your popup class or ID
-    if (windowTitle && windowTitle.contains(event.target as Node)) {
+    const window = document.getElementById('windowTitle'); // Replace with your popup class or ID
+    if (window && window.contains(event.target as Node)) {
       return;
     }
 
-    this.windowCreationNewBook.set(false);
-    document.removeEventListener('click', this.boundHandleClickElsewhere)
-    if (this.titleTimeout) {
-      clearTimeout(this.titleTimeout)
-    } 
+    if (this.windowCreationNewBook()) {
+      this.windowCreationNewBook.set(false);
+      document.removeEventListener('click', this.boundHandleClickElsewhere)
+      if (this.titleTimeout) {
+        clearTimeout(this.titleTimeout)
+      } 
+    } else {
+      this.windowCreationFolder.set(false);
+      document.removeEventListener('click', this.boundHandleClickElsewhere)
+      if (this.newFolderTimeout) {
+        clearTimeout(this.newFolderTimeout)
+      } 
+    }
+    
   }
 
   handleDeletePage() {

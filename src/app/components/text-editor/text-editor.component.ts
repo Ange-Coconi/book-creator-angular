@@ -1,4 +1,4 @@
-import { AfterViewInit, Component} from '@angular/core';
+import { AfterViewInit, Component, OnDestroy} from '@angular/core';
 import { Book } from '../../models';
 import { BookService } from '../../book.service';
 import { Page } from '../../models/page.model';
@@ -8,13 +8,11 @@ import { Page } from '../../models/page.model';
   standalone: true,
   imports: [],
   template: `
-  <div class="w-full h-full max-w-full mt-2 mb-2 flex flex-col justify-center items-center" >
-
-    
+  <div class="w-full h-full max-w-full mt-2 mb-2 ml-[9%] flex flex-col justify-center items-center" >
     <div class="containerEditor">
         <div 
           id="editor" 
-          contenteditable="true" class="w-full h-full block p-4 border-4 border-slate-900/75 overflow-y-scroll text-xs" 
+          contenteditable="true" class="w-full h-full block p-4 border-slate-900/75 rounded-lg bg-white text-xs" 
           (change)="this.bookService.checkOverflow()"
           >
         </div>
@@ -28,25 +26,30 @@ import { Page } from '../../models/page.model';
     max-width: 40vw;
     height: 120vh;
     max-height: 120vh;
+    
   }
+
+  [contenteditable="true"]:focus {
+    outline: none; /* Or any subtle style */
+  } 
   `
 })
 export class TextEditorComponent implements AfterViewInit {
-    bookDefault = new Book("default", "root")
+  bookDefault = new Book("default", "root")
 
-    ngAfterViewInit() {
-        const editor = document.getElementById("editor");
-        if (editor === null) { return }
-        const numberOfPage = this.bookService.bookSelected()!._pages.length;
-        if (numberOfPage > 0) {
-            editor.innerHTML = this.bookService.bookSelected()!._pages[0]._content
-        } else {
-            const newPage = new Page(0, '', this.bookService.bookSelected()!.title);
-            this.bookService.bookSelected()?.pages.push(newPage)
-            this.bookService.selectPage(newPage);
-        }
-    }
+  ngAfterViewInit() {
+      const editor = document.getElementById("editor");
+      if (editor === null) { return }
+      const numberOfPage = this.bookService.bookSelected()!._pages.length;
+      if (numberOfPage > 0) {
+          editor.innerHTML = this.bookService.bookSelected()!._pages[0]._content
+      } else {
+          const newPage = new Page(0, '', this.bookService.bookSelected()!.title);
+          this.bookService.bookSelected()?.pages.push(newPage)
+          this.bookService.selectPage(newPage);
+      }
+  }
 
-    constructor (public bookService: BookService) {}
+  constructor (public bookService: BookService) {}
 }
 

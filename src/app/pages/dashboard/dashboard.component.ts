@@ -1,17 +1,18 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { BookService } from '../../book.service';
 import { ViewService } from '../../view.service';
 import { BookDashboardComponent } from '../../components/book-dashboard/book-dashboard.component';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [BookDashboardComponent],
+  imports: [BookDashboardComponent, CommonModule],
   template: `
-    <div class="main-container relative top-14 z-0 ">
+    <div *ngIf="isReady" class="main-container relative top-14 z-0 ">
       <div class="previsualization flex justify-center items-center">
-        <div class="grid grid-cols-3 grid-rows-2 p-8 rounded-lg bg-slate-900/75 text-white">
+        <div class="grid grid-cols-3 grid-rows-2 p-8 rounded-lg bg-slate-900/75 text-white overflow-hidden">
           @for (book of bookService.bibliothek().books; track book.id) {
-            <app-book-dashboard [title]="book.title"/>
+            <app-book-dashboard [book]="book"/>
           }
         </div>
       </div>
@@ -60,7 +61,14 @@ import { BookDashboardComponent } from '../../components/book-dashboard/book-das
 
   `
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit {
+  isReady = false;
+
+  ngOnInit() {
+    setTimeout(() => {
+      this.isReady = true;
+    }, 20); // Adjust delay as needed
+  }
 
   constructor (public bookService: BookService, public viewService: ViewService) {}
 }

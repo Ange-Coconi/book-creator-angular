@@ -12,6 +12,8 @@ export class ViewService {
   numberOfPage = signal<number>(0);
   zIndexStackLeft = signal<number>(0);
   zIndexStackRight = signal<number>(0);
+  boxShadowTimeout: any = null;
+  zIndexTimeout: any = null;
 
 
   handleNextPage() {
@@ -40,17 +42,27 @@ export class ViewService {
       pageHTML.style.marginRight = `${Math.floor(this.currentPage() / 3)}px`;
     }
 
-    this.zIndexNextPage(this.currentPage(), pageHTML);
+    
+    if (this.zIndexTimeout) {
+      clearTimeout(this.zIndexTimeout);
+    };
 
+    this.zIndexTimeout = setTimeout(() => {
+      this.zIndexNextPage(this.currentPage(), pageHTML);
+    }, 10);
+    
 
     if (this.currentPage() <= this.pageListRectoVerso().length ) {
       this.currentPage.set(this.currentPage() + 1)
+    } 
+    
+    if (this.currentPage() > this.pageListRectoVerso().length) {
+      bookHTML.style.boxShadow = '';
+      bookHTML.classList.remove('shadow');
     }
-
   }
 
   handlePreviousPage() {
-
     const bookHTML = document.getElementById('book');
     if (!bookHTML) return
     bookHTML.style.transformOrigin = 'right'
@@ -72,17 +84,30 @@ export class ViewService {
     if (!pageHTML) return
     pageHTML.style.transform = ``;
 
+    if (this.currentPage() > this.pageListRectoVerso().length) {
+      if (this.boxShadowTimeout) {
+        clearTimeout(this.boxShadowTimeout);
+      }
+
+      // Set a new timeout to apply the shadow after 2 seconds
+      this.boxShadowTimeout = setTimeout(() => {
+        bookHTML.style.boxShadow = '0 4px 10px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 0, 0, 0.7)';
+
+        // Optional: Reset the timeout ID if needed for other checks
+        this.boxShadowTimeout = null;
+      }, 2000);
+    };
+
     if (this.currentPage() > -1 && this.currentPage() < this.numberOfPage() ) {
       pageHTML.style.marginLeft = `${Math.floor(this.currentPage() / 3)}px`;
       pageHTML.style.marginRight = '';
-    }
+    };
 
-    this.zIndexPreviousPage(this.currentPage(), pageHTML)
+    this.zIndexPreviousPage(this.currentPage(), pageHTML);
 
     if (this.currentPage() > -1) {
       this.currentPage.set(this.currentPage() - 1)
     }
-
   }
 
   zIndexNextPage(pageIndex: number, pageHTML: HTMLElement) {
