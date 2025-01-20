@@ -2,7 +2,7 @@ import { Component, Input } from '@angular/core';
 import { RouterLink} from '@angular/router';
 import { BookService } from '../../book.service';
 import { ViewService } from '../../view.service';
-import { Book } from '../../models';
+import { Book } from '../../models/book.model';
 
 @Component({
   selector: 'app-book-dashboard',

@@ -4,6 +4,7 @@ import { TextEditorComponent } from '../../components/text-editor/text-editor.co
 import { BookService } from '../../book.service';
 import { ToolbarComponent } from "../../components/toolbar/toolbar.component";
 import { ViewBookComponent } from "../../components/view-book/view-book.component";
+import { DataService } from '../../data.service';
 
 @Component({
   selector: 'app-creation-book',
@@ -73,6 +74,6 @@ import { ViewBookComponent } from "../../components/view-book/view-book.componen
 export class CreationBookComponent {
 
 
-  constructor (public bookService: BookService) {}
+  constructor (public bookService: BookService, public dataservice: DataService) {}
 
 }

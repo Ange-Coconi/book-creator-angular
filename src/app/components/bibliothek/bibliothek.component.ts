@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Book, Folder, folderOrganisator } from '../../models';
+import { Folder } from '../../models/folder.model';
+import { folderOrganisator } from '../../models/folderOrganisator.model';
 import { BookComponent } from '../../components/book/book.component';
 import { FolderComponent } from '../../components/folder/folder.component';
 import { CommonModule } from '@angular/common';
@@ -7,6 +8,9 @@ import { PageComponent } from '../page/page.component';
 import { BookService } from '../../book.service';
 import { Page } from '../../models/page.model';
 import { ViewService } from '../../view.service';
+import { DataService } from '../../data.service';
+import { Book } from '../../models/book.model';
+import { isFolder } from '../../shared/isFolder';
 
 @Component({
   selector: 'app-bibliothek',
@@ -28,15 +32,15 @@ import { ViewService } from '../../view.service';
             <button id="menuDelete" class="hidden px-2 py-2 mb-2 z-10 border rounded-md shadow-md hover:opacity-80" (click)="handleDeleteElement()">delete</button>
             <button id="buttonCreateFolder" class="px-2 py-2 border rounded-md shadow-md hover:opacity-80" (click)="bookService.handleCreateFolder()">Folder</button>
             <button id="buttonCreateBook" class="px-2 py-2 border rounded-md shadow-md hover:opacity-80" (click)="bookService.handleCreateANewBook()">Create a new Book</button>
-            @if (bookService.prev() !== null) {
+            @if (!bibliothek.root) {
               <button class="px-2 py-2 border rounded-md shadow-md hover:opacity-80" (click)="handleClickBack()">Back</button>
             }
           </div>
-          @for (folder of bookService.actualDisplay().folders; track folder.id) {
+          @for (folder of bibliothek.subfolders; track folder.id) {
             <app-folder [id]="folder.id" (contextmenu)="onRightClickBookAndFolder($event)" [folder]="folder" (folderClicked)="handleFolderClicked($event)" />
           }
-          @for (book of bookService.actualDisplay().books; track book.id) {
-            <app-book [id]="book.id" (contextmenu)="onRightClickBookAndFolder($event)" [book]="book" (bookClicked)="bookService.handleBookClicked($event)"/>
+          @for (book of bibliothek.books; track book.id) {
+            <app-book [id]="book.id" (contextmenu)="onRightClickBookAndFolder($event)" [book]="book" (bookClicked)="handleBookClicked($event)"/>
           }
           
         } @else {
@@ -45,7 +49,7 @@ import { ViewService } from '../../view.service';
             <button id="buttonNewPage" class="block px-1 py-1 ml-1 mr-1 border rounded-md shadow-md hover:opacity-80" (click)="this.bookService.handleNewPage()" >new page</button>
             <button id="buttonDeletePage" class="hidden px-1 py-1 border rounded-md shadow-md hover:opacity-80" (click)="this.bookService.handleDeletePage()" >delete page</button>
           </div>
-          @if (this.bookService.bookSelected()!.pages.length > 0) {
+          @if (this.bookService.bookSelected()?.pages!.length > 0) {
             @for (page of this.bookService.bookSelected()!.pages; track page.id) {
             <app-page [page]="page" (contextmenu)="onRightClickPage($event)" (pageClicked)="handlePageClicked($event)"/>
             }
@@ -62,10 +66,35 @@ import { ViewService } from '../../view.service';
 `
 })
 export class BibliothekComponent implements OnInit, OnDestroy {
+  bibliothek: Folder = { id: 0, name: '', root: true, parentFolderId: null, userId: 0, subfolders: [], books: [] }
+  indexBook: number = 0;
+  isReady: boolean = false;
   elementToDelete: HTMLElement | null = null;
   pageToDelete: HTMLElement | null = null;
   isHovered = false;
   hoverTimeout: any;
+
+  handleBookClicked(bookClicked: Book) {
+    const indexBook = this.bibliothek.books?.findIndex(book => {
+      return book.title === bookClicked.title;
+    })
+
+    if (!indexBook) return;
+    this.indexBook = indexBook;
+
+    this.dataservice.getBook(bookClicked.id).subscribe({
+      next: (data) => {
+        this.bookService.selectBook(data)
+        if (data.pages && data.pages.length > 0) { 
+          this.bookService.selectPage(data.pages[0]); 
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching books dashboard: ', error);
+      }
+    });    
+
+  }
 
   onMouseEnter(): void {
     this.isHovered = true;
@@ -126,20 +155,39 @@ export class BibliothekComponent implements OnInit, OnDestroy {
   }
 
   handleDeleteElement() {
-    if (this.elementToDelete !== null) {
+    if (this.elementToDelete && this.bibliothek.books && this.bibliothek.subfolders) {
       
       const name = this.elementToDelete.innerHTML
-      const index = this.bookService.actualDisplay().books.findIndex(book => {
+      const index = this.bibliothek.books.findIndex(book => {
         return book.title === name;
       })
       if (index !== -1) {
-        this.bookService.actualDisplay().books.splice(index, 1)
+        
+        this.dataservice.deleteBook(this.bibliothek.books[index].id).subscribe({
+          next: (data) => {
+            console.log(data)
+          },
+          error: (error) => {
+            console.error('Error fetching books dashboard: ', error);
+          }
+        });
+
+        this.bibliothek.books.splice(index, 1)
+
       } else {
-        const indexFolder = this.bookService.actualDisplay().folders.findIndex(folder => {
+        const indexFolder = this.bibliothek.subfolders.findIndex(folder => {
           return folder.name === name;
         })
         if (indexFolder !== -1) {
-          this.bookService.actualDisplay().folders.splice(indexFolder, 1)
+          this.dataservice.deleteFolder(this.bibliothek.subfolders[indexFolder].id).subscribe({
+            next: (data) => {
+              console.log(data)
+            },
+            error: (error) => {
+              console.error('Error fetching books dashboard: ', error);
+            }
+          });
+          this.bibliothek.subfolders.splice(indexFolder, 1)
         }
       }
     }
@@ -161,15 +209,12 @@ export class BibliothekComponent implements OnInit, OnDestroy {
   handleClickBackFromBook() { 
     this.bookService.retrieveEditorContent()
 
-    if (this.bookService.actualFolderName() === "root") {
-      this.bookService.bibliothek().books.splice(this.bookService.indexBookSelected(), 1, this.bookService.bookSelected()!)
-      this.bookService.actualDisplay().books.splice(this.bookService.indexBookSelected(), 1, this.bookService.bookSelected()!)
-    } else {
-      const index = this.bookService.bibliothek().folders.findIndex(folder => {  // find the index of the current Folder 
-        return folder._name === this.bookService.actualFolderName();
-      })
-      this.bookService.bibliothek().folders[index].items.books.splice(this.bookService.indexBookSelected(), 1, this.bookService.bookSelected()!)
-    }
+    if (this.bibliothek.root) {
+      this.dataservice.updateBook(this.bookService.bookSelected()?.id!, this.bookService.bookSelected()?.pages!)
+
+      this.bibliothek.books?.splice(this.indexBook, 1, this.bookService.bookSelected()!)
+    } 
+
     this.bookService.selectBook(null);
   }
 
@@ -181,52 +226,65 @@ export class BibliothekComponent implements OnInit, OnDestroy {
     
     this.bookService.retrieveEditorContent()
 
-    const page = this.bookService.bookSelected()?.pages[pageClicked.index];
+    const page = this.bookService.bookSelected()?.pages![pageClicked.index];
 
-    if (page) {
+    if (page && page.content) {
+      
       this.bookService.selectPage(page);
 
-      editor.innerHTML = this.bookService.pageSelected()!.content
+      editor.innerHTML = page.content;
     }
   }
 
   handleClickBack() {
-    if (this.bookService.prev() !== "root" && this.bookService.prev() !== null) {
-      const index = this.bookService.bibliothek().folders.findIndex(folder => {  // find the index of the current Folder 
-        return folder._name === this.bookService.prev();
+    if (this.bibliothek.parentFolderId) {
+      this.dataservice.getFolder(this.bibliothek.parentFolderId).subscribe({
+        next: (data) => {
+          if (isFolder(data))
+          this.bibliothek = data;
+        },
+        error: (error) => {
+          console.error('Error fetching books dashboard: ', error);
+        }
       });
-      this.bookService.actualDisplay.set(this.bookService.bibliothek().folders[index]._items)
-      this.bookService.actualFolderName.set(this.bookService.prev()!);
-      this.bookService.prev.set(this.bookService.bibliothek().folders[index]._name);
-    } else if (this.bookService.prev() === "root") {
-      this.bookService.actualDisplay.set(this.bookService.bibliothek());
-      this.bookService.prev.set(null);
-      this.bookService.actualFolderName.set("root")
-    }
+    }    
   }
 
   handleFolderClicked(folderClicked: Folder) {
-    const indexFolderToDisplay = this.bookService.bibliothek().folders.findIndex(folder => folder.name === folderClicked.name);
-    this.bookService.actualDisplay.set(this.bookService.bibliothek().folders[indexFolderToDisplay].items);
-    this.bookService.actualFolderName.set(this.bookService.bibliothek().folders[indexFolderToDisplay]._name);
-    this.bookService.prev.set(this.bookService.bibliothek().folders[indexFolderToDisplay]._parent);
+    this.dataservice.getFolder(folderClicked.id).subscribe({
+      next: (data) => {
+        if (isFolder(data))
+        this.bibliothek = data;
+      },
+      error: (error) => {
+        console.error('Error fetching books dashboard: ', error);
+      }
+    });
   }
 
   ngOnInit() {
-    
+    this.dataservice.getBibliothek().subscribe({
+      next: (data) => {
+        if (isFolder(data))
+        this.bibliothek = data;
+      },
+      error: (error) => {
+        console.error('Error fetching books dashboard: ', error);
+      }
+    });
+
+    setTimeout(() => {
+      this.isReady = true;
+    }, 20); // Adjust delay as needed
   }
 
   ngOnDestroy(): void {
     this.bookService.retrieveEditorContent()
     this.bookService.bookSelected.set(null)
     this.bookService.pageSelected.set(null)
-    this.bookService.actualDisplay.set(this.bookService.bibliothek())
-    this.bookService.actualFolderName.set('root');
     this.bookService.viewBook.set(false);
-    this.bookService.indexBookSelected.set(0);
-
   }
 
-  constructor (public bookService: BookService, public viewService: ViewService) {}
+  constructor (public bookService: BookService, public viewService: ViewService, public dataservice: DataService) {}
 
 }
