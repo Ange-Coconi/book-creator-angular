@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter} from '@angular/core';
-import { Book } from '../../models';
+import { Book } from '../../models/book.model';
 
 @Component({
   selector: 'app-book',
@@ -21,7 +21,7 @@ export class BookComponent {
   @Output() 
   bookClicked = new EventEmitter<Book>();
 
-  get id(): string {
+  get id(): number {
     return this.book.id;
   }
 

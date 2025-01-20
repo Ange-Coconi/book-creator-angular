@@ -3,6 +3,8 @@ import { BookService } from '../../book.service';
 import { ViewService } from '../../view.service';
 import { BookDashboardComponent } from '../../components/book-dashboard/book-dashboard.component';
 import { CommonModule } from '@angular/common';
+import { DataService } from '../../data.service';
+import { Book } from '../../models/book.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -11,7 +13,7 @@ import { CommonModule } from '@angular/common';
     <div *ngIf="isReady" class="main-container relative top-14 z-0 ">
       <div class="previsualization flex justify-center items-center">
         <div class="grid grid-cols-3 grid-rows-2 p-8 rounded-lg bg-slate-900/75 text-white overflow-hidden">
-          @for (book of bookService.bibliothek().books; track book.id) {
+          @for (book of bookDashboard; track book.id) {
             <app-book-dashboard [book]="book"/>
           }
         </div>
@@ -63,12 +65,26 @@ import { CommonModule } from '@angular/common';
 })
 export class DashboardComponent implements OnInit {
   isReady = false;
+  bookDashboard: Book[] = []
 
   ngOnInit() {
+
+    this.dataservice.getBibliothek().subscribe({
+      next: (data) => {
+        this.bookDashboard = data;
+      },
+      error: (error) => {
+        console.error('Error fetching books dashboard: ', error);
+      }
+    });
+
     setTimeout(() => {
       this.isReady = true;
     }, 20); // Adjust delay as needed
+
+    
+
   }
 
-  constructor (public bookService: BookService, public viewService: ViewService) {}
+  constructor (public bookService: BookService, public viewService: ViewService, public dataservice: DataService) {}
 }

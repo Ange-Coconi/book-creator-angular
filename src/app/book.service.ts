@@ -1,20 +1,17 @@
 import { Injectable, signal } from '@angular/core';
-import { Book, Folder, folderOrganisator } from './models';
+import { Book } from './models/book.model';
+import { Folder } from './models/folder.model';
 import { Page } from './models/page.model';
 import { ViewService } from './view.service';
+import { updateIndex } from './shared/updateIndex';
 
 @Injectable({
   providedIn: 'root'
 })
 export class BookService {
-  bibliothek = signal<folderOrganisator>({ books: [], folders: []});
-  actualDisplay = signal<folderOrganisator>({ books: [], folders: []});
-  actualFolderName = signal<string>('root');
-  prev = signal<string | null>(null);
   bookSelected = signal<Book | null>(null);
   pageSelected = signal<Page | null>(null);
   viewBook = signal<boolean>(false);
-  indexBookSelected = signal<number>(0);
   windowCreationNewBook= signal<boolean>(false);
   windowCreationFolder= signal<boolean>(false);
   newFolderTimeout: any;
@@ -45,27 +42,6 @@ export class BookService {
     this.viewService.lisfOfPage.set([]);
   }
 
-  handleBookClicked(bookClicked: Book) {
-    const indexBook = this.actualDisplay().books.findIndex(book => {
-      return book.title === bookClicked.title;
-    })
-
-    this.setIndex(indexBook);
-
-    if (this.actualFolderName() === "root") {
-      this.selectBook(this.bibliothek().books[indexBook])
-
-    } else {
-      const indexFolder = this.bibliothek().folders.findIndex(folder => {
-        return folder.name === this.actualFolderName();
-      })
-      this.selectBook(this.bibliothek().folders[indexFolder].items.books[indexBook])
-    } 
-    
-    this.selectPage(this.bookSelected()?.pages[0]!)
-
-  }
-
   handlePreviousPage() {
     const editor = document.getElementById("editor");
     if (editor === null) { 
@@ -78,12 +54,12 @@ export class BookService {
     }
     this.retrieveEditorContent();
 
-    const page = this.bookSelected()?.pages[indexCurrentPage - 1];
+    const page = this.bookSelected()?.pages![indexCurrentPage - 1];
 
-    if (page) {
+    if (page && page.content) {
       this.selectPage(page);
 
-      editor.innerHTML = this.pageSelected()!.content
+      editor.innerHTML = page.content;
     }
   }
 
@@ -94,18 +70,18 @@ export class BookService {
     }
     const indexCurrentPage = this.pageSelected()?.index;
 
-    if (indexCurrentPage === this.bookSelected()?.pages.length! - 1 || indexCurrentPage === undefined) {
+    if (indexCurrentPage === this.bookSelected()?.pages!.length! - 1 || indexCurrentPage === undefined) {
       return
     }
 
     this.retrieveEditorContent();
 
-    const page = this.bookSelected()?.pages[indexCurrentPage + 1];
+    const page = this.bookSelected()?.pages![indexCurrentPage + 1];
 
-    if (page) {
+    if (page && page.content) {
       this.selectPage(page);
 
-      editor.innerHTML = this.pageSelected()!.content
+      editor.innerHTML = page.content
     }
   }
 
@@ -121,50 +97,8 @@ export class BookService {
       const indexCurrentPage = this.pageSelected()?.index;
 
       if (indexCurrentPage !== undefined) {
-        this.bookSelected()!.pages[indexCurrentPage].content = container;
+        this.bookSelected()!.pages![indexCurrentPage].content = container;
       }
-    }
-  }
-
-  handleSubmitName(event: any) {
-    event.preventDefault();
-    this.windowCreationFolder.set(false); // trigger window for title
-    const name = event.target.title.value  // retrieve user input for title
-    const newFolder: Folder = new Folder(name, this.prev() === null ? 'root' : this.prev()!) // initialize a new instance of Book
-    // this.actualDisplay.books.push(newBook);   // add the new Book to the display
-    
-    if (this.actualFolderName() === "root") {
-      this.bibliothek().folders.push(newFolder);    // add the new Book to library if in the root Folder
-    } else {
-      const index = this.bibliothek().folders.findIndex(folder => {  // find the index of the current Folder 
-        return folder._name === this.actualFolderName();
-      })
-
-      this.bibliothek().folders[index].items.folders.push(newFolder);  // add the book
-    }
-    if (this.newFolderTimeout) {
-      clearTimeout(this.newFolderTimeout)
-    }
-  }
-
-  handleSubmitTitle(event: any) {
-    event.preventDefault();
-    this.windowCreationNewBook.set(false); // trigger window for title
-    const title = event.target.title.value  // retrieve user input for title
-    const newBook: Book = new Book(title, this.actualFolderName()) // initialize a new instance of Book
-    // this.actualDisplay.books.push(newBook);   // add the new Book to the display
-    
-    if (this.actualFolderName() === "root") {
-      this.bibliothek().books.push(newBook);    // add the new Book to library if in the root Folder
-    } else {
-      const index = this.bibliothek().folders.findIndex(folder => {  // find the index of the current Folder 
-        return folder._name === this.actualFolderName();
-      })
-
-      this.bibliothek().folders[index].items.books.push(newBook);  // add the book
-    }
-    if (this.titleTimeout) {
-      clearTimeout(this.titleTimeout)
     }
   }
 
@@ -210,8 +144,8 @@ export class BookService {
   handleDeletePage() {
     const indexPage = this.pageSelected()?.index;
     if (indexPage !== undefined && indexPage !== null) {
-        this.bookSelected()?.pages.splice(indexPage, 1);
-        this.bookSelected()?.pages.forEach((page, index) => {
+        this.bookSelected()?.pages!.splice(indexPage, 1);
+        this.bookSelected()?.pages!.forEach((page, index) => {
           if (page.name === page.index.toString()) {
             page.name = index.toString()
           }
@@ -220,11 +154,11 @@ export class BookService {
     }
     this.selectPage(null)
     this.retrieveEditorContent()
-    if (this.bookSelected()?.pages.length! === 0) {
+    if (this.bookSelected()?.pages!.length! === 0) {
         this.handleNewPage()
     } else {
-        const indexLastPage = this.bookSelected()!._pages.length;
-        const page = this.bookSelected()?.pages[indexLastPage];
+        const indexLastPage = this.bookSelected()!.pages!.length;
+        const page = this.bookSelected()?.pages![indexLastPage];
         if (page) {
         this.selectPage(page);
         }
@@ -241,18 +175,34 @@ export class BookService {
   }
   
   handleNewPage() {
-    this.retrieveEditorContent()
-
-    const indexNextPage = this.bookSelected()!._pages.length;
-
-    const newPage: Page = new Page(indexNextPage, '', this.bookSelected()!.title)
-    this.bookSelected()!._pages.push(newPage);
-
-    const page = this.bookSelected()?.pages[indexNextPage];
-    if (page) {
-    this.selectPage(page);
+    this.retrieveEditorContent();
+  
+    const bookSelected = this.bookSelected();
+    const pageSelected = this.pageSelected();
+  
+    if (bookSelected && bookSelected.pages && pageSelected) {
+      const pagesLength = bookSelected.pages.length;
+      const pageIndex = pageSelected.index;
+  
+      if (pageIndex === pagesLength - 1) {
+        const newPage = { index: pagesLength, content: '', bookId: bookSelected.id };
+  
+        if (newPage && newPage.bookId !== undefined) {
+          this.selectPage(newPage);
+        }
+      } else {
+        const newPage = { index: pageIndex, content: '', bookId: bookSelected.id };
+        
+        if (newPage && newPage.bookId !== undefined) {
+          updateIndex(bookSelected, pageIndex);
+          this.selectPage(newPage);
+        }
+      }
+    } else {
+      console.error('Book or Page is undefined');
     }
   }
+  
 
   selectBook(book: Book | null) {
     this.bookSelected.set(book);
@@ -262,7 +212,4 @@ export class BookService {
     this.pageSelected.set(page);
   }
 
-  setIndex(index: number) {
-    this.indexBookSelected.set(index);
-  }
 }

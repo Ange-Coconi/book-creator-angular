@@ -1,7 +1,6 @@
 import { AfterViewInit, Component, OnDestroy} from '@angular/core';
-import { Book } from '../../models';
 import { BookService } from '../../book.service';
-import { Page } from '../../models/page.model';
+
 
 @Component({
   selector: 'app-text-editor',
@@ -35,20 +34,41 @@ import { Page } from '../../models/page.model';
   `
 })
 export class TextEditorComponent implements AfterViewInit {
-  bookDefault = new Book("default", "root")
 
   ngAfterViewInit() {
-      const editor = document.getElementById("editor");
-      if (editor === null) { return }
-      const numberOfPage = this.bookService.bookSelected()!._pages.length;
-      if (numberOfPage > 0) {
-          editor.innerHTML = this.bookService.bookSelected()!._pages[0]._content
+    const editor = document.getElementById("editor");
+    const bookSelected = this.bookService.bookSelected();
+  
+    if (!editor) {
+      console.error('Editor element not found');
+      return;
+    }
+  
+    if (!bookSelected) {
+      console.error('No book selected');
+      return;
+    }
+  
+    const pages = bookSelected.pages;
+    if (!pages) {
+      console.error('No pages found in the selected book');
+      return;
+    }
+  
+    const pagesLength = pages.length;
+    if (pagesLength > 0) {
+      editor.innerHTML = pages[0].content || '';
+    } else {
+      const newPage = { index: pagesLength, content: '', bookId: bookSelected.id };
+  
+      if (newPage.bookId !== undefined) {
+        this.bookService.selectPage(newPage);
       } else {
-          const newPage = new Page(0, '', this.bookService.bookSelected()!.title);
-          this.bookService.bookSelected()?.pages.push(newPage)
-          this.bookService.selectPage(newPage);
+        console.error('New page has undefined bookId');
       }
+    }
   }
+  
 
   constructor (public bookService: BookService) {}
 }
