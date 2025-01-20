@@ -18,7 +18,7 @@ import { isFolder } from '../../shared/isFolder';
   providers: [],
   template: `
     <div 
-      class="fixed left-0 top-14 w-64 h-full pb-14 z-50 bg-slate-900/75 text-white overflow-y-scroll transition-transform duration-500 ease-in-out"
+      class="scrolling fixed left-0 top-14 w-64 h-full pb-14 z-50 bg-slate-900/75 text-white overflow-y-scroll transition-transform duration-500 ease-in-out"
       [ngClass]="{'-translate-x-56': bookService.viewBook() && !isHovered,'translate-x-0': isHovered}"
       (mouseenter)="onMouseEnter()"
       (mouseleave)="onMouseLeave()"
@@ -60,21 +60,30 @@ import { isFolder } from '../../shared/isFolder';
       } @else {
         <h4 class="block w-full text-center">{{ "number of page r/v : " + viewService.numberOfPage()}}</h4>
       }
-      @if (bookService.windowCreationNewBook() || bookService.windowCreationFolder()) {
-          <div class="fixed w-full h-full top-0 left-0 z-[52] bg-slate-900/75 text-white">
-            <form 
-              id="windowTitle" 
-              (submit)="bookService.windowCreationNewBook() ? handleSubmitTitle($event) : handleSubmitName($event)" 
-              class="fixed top-1/3 left-1/3 w-2/6 h-2/6 z-[55] border rounded-xl flex flex-col justify-center items-center">
-              <label class="mb-2 text-xl" for="title">{{bookService.windowCreationNewBook() ? "Title" : "Name"}}</label>
-              <input class="mb-12 w-96 px-2 py-1 text-black" type="text" id="title" name="title" required/>
-              <button class="text-lg px-4 py-2 border rounded-md shadow-md hover:opacity-80" type="submit">ok</button>
-            </form>
-          </div>
-        }
+      
     </div>
+    @if (bookService.windowCreationNewBook() || bookService.windowCreationFolder()) {
+      <div class="fixed w-full h-full top-0 left-0 z-[52] bg-slate-900/75 text-white">
+        <form 
+          id="windowTitle" 
+          (submit)="bookService.windowCreationNewBook() ? handleSubmitTitle($event) : handleSubmitName($event)" 
+          class="fixed top-1/3 left-1/3 w-2/6 h-2/6 z-[55] border rounded-xl flex flex-col justify-center items-center">
+          <label class="mb-2 text-xl" for="title">{{bookService.windowCreationNewBook() ? "Title" : "Name"}}</label>
+          <input class="mb-12 w-96 px-2 py-1 text-black" type="text" id="title" name="title" required/>
+          <button class="text-lg px-4 py-2 border rounded-md shadow-md hover:opacity-80" type="submit">ok</button>
+        </form>
+      </div>
+    }
   `,
   styles: `
+  .scrolling {
+    scrollbar-width: none; /* For Firefox */
+    -ms-overflow-style: none; /* For IE and Edge */
+  }
+
+  .scrolling::-webkit-scrollbar {
+    display: none; /* For Chrome, Safari, and newer versions of Edge */
+  }
 `
 })
 export class BibliothekComponent implements OnInit, OnDestroy {
@@ -87,19 +96,21 @@ export class BibliothekComponent implements OnInit, OnDestroy {
   hoverTimeout: any;
 
   handleBookClicked(bookClicked: Book) {
+
     const indexBook = this.bibliothek.books?.findIndex(book => {
       return book.title === bookClicked.title;
     })
 
-    if (!indexBook) return;
+    if (indexBook === -1 || indexBook === undefined) return;
     this.indexBook = indexBook;
+    
 
     this.dataservice.getBook(bookClicked.id).subscribe({
       next: (data) => {
-        console.log(data)
-        this.bookService.selectBook(data)
-        if (data.pages && data.pages.length > 0) { 
-          this.bookService.selectPage(data.pages[0]); 
+        const book = data[0];
+        this.bookService.selectBook(book)
+        if (book.pages && book.pages.length > 0) { 
+          this.bookService.selectPage(book.pages[0]); 
         }
       },
       error: (error) => {
@@ -317,10 +328,10 @@ export class BibliothekComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.dataservice.getBibliothek().subscribe({
       next: (data) => {
-        console.log(data)
-        if (isFolder(data)) {
-          console.log(data)
-          this.bibliothek = data;
+        const bibliothek = data[0]
+        if (isFolder(bibliothek)) {
+          console.log(bibliothek)
+          this.bibliothek = bibliothek;
         }
         
       },
