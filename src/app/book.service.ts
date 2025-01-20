@@ -1,9 +1,9 @@
 import { Injectable, signal } from '@angular/core';
 import { Book } from './models/book.model';
 import { Folder } from './models/folder.model';
-import { folderOrganisator } from './models/folderOrganisator.model';
 import { Page } from './models/page.model';
 import { ViewService } from './view.service';
+import { updateIndex } from './shared/updateIndex';
 
 @Injectable({
   providedIn: 'root'
@@ -102,48 +102,6 @@ export class BookService {
     }
   }
 
-  handleSubmitName(event: any) {
-    event.preventDefault();
-    this.windowCreationFolder.set(false); // trigger window for title
-    const name = event.target.title.value  // retrieve user input for title
-    const newFolder: Folder = new Folder(name, this.prev() === null ? 'root' : this.prev()!) // initialize a new instance of Book
-    // this.actualDisplay.books.push(newBook);   // add the new Book to the display
-    
-    if (this.actualFolderName() === "root") {
-      this.bibliothek().folders.push(newFolder);    // add the new Book to library if in the root Folder
-    } else {
-      const index = this.bibliothek().folders.findIndex(folder => {  // find the index of the current Folder 
-        return folder._name === this.actualFolderName();
-      })
-
-      this.bibliothek().folders[index].items.folders.push(newFolder);  // add the book
-    }
-    if (this.newFolderTimeout) {
-      clearTimeout(this.newFolderTimeout)
-    }
-  }
-
-  handleSubmitTitle(event: any) {
-    event.preventDefault();
-    this.windowCreationNewBook.set(false); // trigger window for title
-    const title = event.target.title.value  // retrieve user input for title
-    const newBook: Book = new Book(title, this.actualFolderName()) // initialize a new instance of Book
-    // this.actualDisplay.books.push(newBook);   // add the new Book to the display
-    
-    if (this.actualFolderName() === "root") {
-      this.bibliothek().books.push(newBook);    // add the new Book to library if in the root Folder
-    } else {
-      const index = this.bibliothek().folders.findIndex(folder => {  // find the index of the current Folder 
-        return folder._name === this.actualFolderName();
-      })
-
-      this.bibliothek().folders[index].items.books.push(newBook);  // add the book
-    }
-    if (this.titleTimeout) {
-      clearTimeout(this.titleTimeout)
-    }
-  }
-
   handleCreateFolder() {
     this.windowCreationFolder.set(true);
 
@@ -217,18 +175,34 @@ export class BookService {
   }
   
   handleNewPage() {
-    this.retrieveEditorContent()
-
-    const indexNextPage = this.bookSelected()!.pages!.length;
-
-    const newPage: Page = new Page(indexNextPage, '', this.bookSelected()!.title)
-    this.bookSelected()!.pages!.push(newPage);
-
-    const page = this.bookSelected()?.pages![indexNextPage];
-    if (page) {
-    this.selectPage(page);
+    this.retrieveEditorContent();
+  
+    const bookSelected = this.bookSelected();
+    const pageSelected = this.pageSelected();
+  
+    if (bookSelected && bookSelected.pages && pageSelected) {
+      const pagesLength = bookSelected.pages.length;
+      const pageIndex = pageSelected.index;
+  
+      if (pageIndex === pagesLength - 1) {
+        const newPage = { index: pagesLength, content: '', bookId: bookSelected.id };
+  
+        if (newPage && newPage.bookId !== undefined) {
+          this.selectPage(newPage);
+        }
+      } else {
+        const newPage = { index: pageIndex, content: '', bookId: bookSelected.id };
+        
+        if (newPage && newPage.bookId !== undefined) {
+          updateIndex(bookSelected, pageIndex);
+          this.selectPage(newPage);
+        }
+      }
+    } else {
+      console.error('Book or Page is undefined');
     }
   }
+  
 
   selectBook(book: Book | null) {
     this.bookSelected.set(book);

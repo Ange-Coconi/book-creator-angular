@@ -1,8 +1,8 @@
 
 export interface Page {
-    id: number;
+    id?: number;
     name?: string;
     index: number;
-    content?: string;
-    bookId?: number;
+    content: string;
+    bookId: number;
 }

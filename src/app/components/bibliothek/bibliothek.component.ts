@@ -154,6 +154,46 @@ export class BibliothekComponent implements OnInit, OnDestroy {
     document.addEventListener('click', () => this.hidewindowElementToDelete());
   }
 
+  handleSubmitName(event: any) {
+    event.preventDefault();
+    this.bookService.windowCreationFolder.set(false); // trigger window for title
+    const name = event.target.title.value  // retrieve user input for title
+
+    this.dataservice.createFolder(name, this.bibliothek.id).subscribe({
+      next: (data) => {
+        console.log(data)
+        this.bibliothek.subfolders?.push(data);
+      },
+      error: (error) => {
+        console.error('Error fetching books dashboard: ', error);
+      }
+    });
+
+    if (this.bookService.newFolderTimeout) {
+      clearTimeout(this.bookService.newFolderTimeout)
+    }
+  }
+
+  handleSubmitTitle(event: any) {
+    event.preventDefault();
+    this.bookService.windowCreationNewBook.set(false); // trigger window for title
+    const title = event.target.title.value  // retrieve user input for title
+    
+    this.dataservice.createBook(title, this.bibliothek.id).subscribe({
+      next: (data) => {
+        console.log(data)
+        this.bibliothek.books?.push(data);
+      },
+      error: (error) => {
+        console.error('Error fetching books dashboard: ', error);
+      }
+    });
+
+    if (this.bookService.titleTimeout) {
+      clearTimeout(this.bookService.titleTimeout)
+    }
+  }
+
   handleDeleteElement() {
     if (this.elementToDelete && this.bibliothek.books && this.bibliothek.subfolders) {
       
