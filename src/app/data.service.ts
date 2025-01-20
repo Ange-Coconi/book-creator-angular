@@ -8,7 +8,7 @@ import { Page } from './models/page.model';
   providedIn: 'root'
 })
 export class DataService {
-  private apiUrl = 'http://localhost:3000/api'; // Your API endpoint
+  private apiUrl = 'http://localhost:3000/api'; 
 
   constructor(private http: HttpClient) { }
 

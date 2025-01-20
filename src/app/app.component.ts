@@ -29,6 +29,32 @@ import { ViewService } from './view.service';
     background-size: cover;
   }
 
+  .form-background {
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    min-height: 100vh;
+    background: url('src/app/assets/bg-dashboard.jpg');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-attachment: fixed;
+    background-size: cover;
+  }
+
+  .visualize-background {
+    top: 0;
+    left: 0;
+    width: calc(100vw - 17px);
+    height: 100vh;
+    min-height: 100vh;
+    background: url('src/app/assets/bg-dashboard.jpg');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-attachment: fixed;
+    background-size: cover;
+  }
+
   .default-background {
     top: 0;
     left: 0;
@@ -54,9 +80,13 @@ export class AppComponent implements OnInit {
       case '/':
         return 'dashboard-background';
       case '/creation-book':
-        return 'default-background';
+        return 'visualize-background';
       case '/contact':
-        return 'default-background';
+        return 'form-background';
+      case '/login':
+        return 'form-background';
+      case '/sign-in':
+        return 'form-background';
       default:
         return 'default-background';
     }
