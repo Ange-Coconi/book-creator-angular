@@ -146,9 +146,6 @@ export class BookService {
     if (indexPage !== undefined && indexPage !== null) {
         this.bookSelected()?.pages!.splice(indexPage, 1);
         this.bookSelected()?.pages!.forEach((page, index) => {
-          if (page.name === page.index.toString()) {
-            page.name = index.toString()
-          }
           page.index = index;
         });
     }
