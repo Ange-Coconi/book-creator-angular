@@ -3,7 +3,6 @@ import { BookService } from '../../book.service';
 import { BookPageComponent } from '../book-page/book-page.component';
 import { ViewService } from '../../view.service';
 import { CommonModule } from '@angular/common';
-import { PageSwallow } from '../../models/page-swallow.model';
 import { PageRectoVerso } from '../../models/page-recto-verso.model';
 import { Page } from '../../models/page.model';
 
@@ -75,19 +74,23 @@ export class ViewBookComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
 
-    const pageSwallowDefault: PageSwallow= {_id: '', _name: '', _index: 0, _content: '', _parent: ''}
+    const bookSelected = this.bookService.bookSelected();
+    
+    if (!bookSelected) return
+
+    const pageDefault: Page = {index: 0, content: '', bookId: this.bookService.bookSelected()!.id}
 
     this.viewService.lisfOfPage().forEach(page => {
-      if (page._index % 2 === 0) {
+      if (page.index % 2 === 0) {
         const pageRectoVerso: PageRectoVerso = {
-          index: page._index / 2,
+          index: page.index / 2,
           recto: {...page},
-          verso: {...pageSwallowDefault}
+          verso: {...pageDefault}
         }
         this.viewService.pageListRectoVerso().push(pageRectoVerso);
 
       } else {
-        this.viewService.pageListRectoVerso()[Math.floor(page._index / 2)].verso = {...page};
+        this.viewService.pageListRectoVerso()[Math.floor(page.index / 2)].verso = {...page};
       }
   })
     this.viewService.numberOfPage.set(this.viewService.pageListRectoVerso().length)

@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
-import { PageSwallow } from './models/page-swallow.model';
 import { Page } from './models/page.model';
 
 @Injectable({

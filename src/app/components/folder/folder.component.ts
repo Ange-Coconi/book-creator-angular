@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { Folder } from '../../models';
+import { Folder } from '../../models/folder.model';
 
 @Component({
   selector: 'app-folder',
@@ -19,7 +19,7 @@ export class FolderComponent {
   @Output() 
   folderClicked = new EventEmitter<Folder>();
   
-  get id(): string {
+  get id(): number {
     return this.folder.id;
   }
 

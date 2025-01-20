@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { Folder } from '../../models/folder.model';
 import { folderOrganisator } from '../../models/folderOrganisator.model';
 import { BookComponent } from '../../components/book/book.component';
@@ -49,7 +49,7 @@ import { isFolder } from '../../shared/isFolder';
             <button id="buttonNewPage" class="block px-1 py-1 ml-1 mr-1 border rounded-md shadow-md hover:opacity-80" (click)="this.bookService.handleNewPage()" >new page</button>
             <button id="buttonDeletePage" class="hidden px-1 py-1 border rounded-md shadow-md hover:opacity-80" (click)="this.bookService.handleDeletePage()" >delete page</button>
           </div>
-          @if (this.bookService.bookSelected()?.pages!.length > 0) {
+          @if (bookService.bookSelected()?.pages!.length > 0) {
             @for (page of this.bookService.bookSelected()!.pages; track page.id) {
             <app-page [page]="page" (contextmenu)="onRightClickPage($event)" (pageClicked)="handlePageClicked($event)"/>
             }
@@ -60,6 +60,18 @@ import { isFolder } from '../../shared/isFolder';
       } @else {
         <h4 class="block w-full text-center">{{ "number of page r/v : " + viewService.numberOfPage()}}</h4>
       }
+      @if (bookService.windowCreationNewBook() || bookService.windowCreationFolder()) {
+          <div class="fixed w-full h-full top-0 left-0 z-[52] bg-slate-900/75 text-white">
+            <form 
+              id="windowTitle" 
+              (submit)="bookService.windowCreationNewBook() ? handleSubmitTitle($event) : handleSubmitName($event)" 
+              class="fixed top-1/3 left-1/3 w-2/6 h-2/6 z-[55] border rounded-xl flex flex-col justify-center items-center">
+              <label class="mb-2 text-xl" for="title">{{bookService.windowCreationNewBook() ? "Title" : "Name"}}</label>
+              <input class="mb-12 w-96 px-2 py-1 text-black" type="text" id="title" name="title" required/>
+              <button class="text-lg px-4 py-2 border rounded-md shadow-md hover:opacity-80" type="submit">ok</button>
+            </form>
+          </div>
+        }
     </div>
   `,
   styles: `
@@ -84,6 +96,7 @@ export class BibliothekComponent implements OnInit, OnDestroy {
 
     this.dataservice.getBook(bookClicked.id).subscribe({
       next: (data) => {
+        console.log(data)
         this.bookService.selectBook(data)
         if (data.pages && data.pages.length > 0) { 
           this.bookService.selectPage(data.pages[0]); 
@@ -93,7 +106,6 @@ export class BibliothekComponent implements OnInit, OnDestroy {
         console.error('Error fetching books dashboard: ', error);
       }
     });    
-
   }
 
   onMouseEnter(): void {
@@ -305,8 +317,12 @@ export class BibliothekComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.dataservice.getBibliothek().subscribe({
       next: (data) => {
-        if (isFolder(data))
-        this.bibliothek = data;
+        console.log(data)
+        if (isFolder(data)) {
+          console.log(data)
+          this.bibliothek = data;
+        }
+        
       },
       error: (error) => {
         console.error('Error fetching books dashboard: ', error);

@@ -13,7 +13,7 @@ import { CommonModule } from '@angular/common';
       class="ml-5 block text-center text-white px-2 py-2"
       [ngClass]="{ 'text-green-300 bold': bookService.pageSelected()?.index === index, 'text-white': bookService.pageSelected()?.index !== index }" 
       >
-      {{name === index.toString() ? "page " + index.toString() : name}}
+      {{"page " + index.toString()}}
     </div>
   </button>
   `
@@ -26,17 +26,10 @@ export class PageComponent {
   @Output() 
   pageClicked = new EventEmitter<Page>();
 
-  get id(): string {
-    return this.page.id;
-  }
-
   get index(): number {
     return this.page.index;
   }
 
-  get name(): string {
-    return this.page.name;
-  }
 
 
   constructor (public bookService: BookService) {}
