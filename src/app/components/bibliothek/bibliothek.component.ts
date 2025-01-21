@@ -1,6 +1,5 @@
-import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Folder } from '../../models/folder.model';
-import { folderOrganisator } from '../../models/folderOrganisator.model';
 import { BookComponent } from '../../components/book/book.component';
 import { FolderComponent } from '../../components/folder/folder.component';
 import { CommonModule } from '@angular/common';
@@ -13,6 +12,7 @@ import { Book } from '../../models/book.model';
 import { isFolder } from '../../shared/isFolder';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../auth.service';
+import JSZip from 'jszip';
 
 @Component({
   selector: 'app-bibliothek',
@@ -27,6 +27,9 @@ import { AuthService } from '../../auth.service';
       >
       <div class="flex justify-center items-center border-y-4 mb-3">
         <h2 class="text-xl py-2">{{ this.bookService.bookSelected() ? this.bookService.bookSelected()?.title : "Library"}}</h2>
+        <button class="fixed left-2 w-6 h-6 fill-white" (click)="handleUpload()">
+          <svg  xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" fill-rule="evenodd" clip-rule="evenodd" viewBox="0 0 512 444.019"><path fill-rule="nonzero" d="M.723 320.533c-2.482-10.26 1.698-18.299 8.38-23.044a23.417 23.417 0 018.018-3.632c2.877-.699 5.88-.864 8.764-.452 8.127 1.166 15.534 6.417 18.013 16.677a631.854 631.854 0 014.317 19.092 1205.66 1205.66 0 013.418 16.772c4.445 22.442 7.732 36.511 16.021 43.526 8.775 7.422 25.366 9.984 57.167 9.984h268.042c29.359 0 44.674-2.807 52.736-10.093 7.768-7.022 10.805-20.735 14.735-41.777l.007-.043c.916-4.946 1.889-10.139 3.426-17.758 1.298-6.427 2.722-13.029 4.34-19.703 2.484-10.255 9.886-15.503 18.008-16.677 2.861-.41 5.846-.242 8.722.449 2.905.699 5.679 1.935 8.068 3.633 6.672 4.742 10.843 12.763 8.38 22.997l-.011.044a493.707 493.707 0 00-3.958 17.975c-1.011 5.023-2.169 11.215-3.281 17.177l-.008.044c-5.792 31.052-10.544 52.357-26.462 67.318-15.681 14.742-40.245 20.977-84.699 20.977H124.823c-46.477 0-72.016-5.596-88.445-20.144-16.834-14.909-21.937-36.555-28.444-69.403-1.316-6.653-2.582-13.005-3.444-17.125-1.213-5.782-2.461-11.434-3.767-16.814zm131.02-190.804L255.079 0l125.184 131.556-34.53 32.848-66.774-70.174.201 158.278h-47.594l-.202-158.397-65.092 68.466-34.529-32.848zM279.191 276.45l.028 22.977h-47.594l-.028-22.977h47.594zm.046 37.794l.024 18.65h-47.595l-.023-18.65h47.594z"/></svg>
+        </button>
       </div>
       @if (!bookService.viewBook()) {
         @if (this.bookService.bookSelected() === null) {
@@ -148,6 +151,39 @@ export class BibliothekComponent implements OnInit, OnDestroy {
   hoverTimeout: any;
   bookForm: FormGroup;
   dataFetchingTimeout: any;
+
+  handleUpload() {
+    
+    const pages = this.bookService.bookSelected()?.pages;
+    const title = this.bookService.bookSelected()?.title
+    if (!pages || !title) return
+
+    console.log('he')
+    async function downloadPagesAsZip(pages: Page[], title: string) {
+        const zip = new JSZip();
+        let agregate = ''
+        // Add each page to the zip file
+        pages.forEach((page, index) => {
+          zip.file(`page${index + 1}.txt`, page.content);
+          agregate += page.content;
+        });
+        const book = zip.folder("book");
+        book?.file(`${title}.txt`, agregate);
+        // Generate the zip file
+        const zipContent = await zip.generateAsync({ type: "blob" });
+      
+        // Create a download link and trigger the download
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(zipContent);
+        link.download = "pages.zip";
+        link.click();
+      
+        // Clean up
+        URL.revokeObjectURL(link.href);
+    }   
+    
+    downloadPagesAsZip(pages, title);
+  }
 
   handleBookClicked(bookClicked: Book) {
 
@@ -377,32 +413,28 @@ export class BibliothekComponent implements OnInit, OnDestroy {
  
   handleClickBackFromBook() { 
     this.bookService.retrieveEditorContent()
-    console.log(this.bookService.bookSelected()?.id)
 
-    if (this.bibliothek.root) {
-      this.dataservice.updateBook(this.bookService.bookSelected()?.id!, this.bookService.bookSelected()?.pages!).subscribe({
-        next: (data) => {
-          console.log(data)
-        },
-        error: (error) => {
-          console.error('Error updating book: ', error);
-          if (error.error.message && typeof error.error.message === 'string') {
-            this.authService.alert.set(error.error.message);
+    this.dataservice.updateBook(this.bookService.bookSelected()?.id!, this.bookService.bookSelected()?.pages!).subscribe({
+      next: (data) => {
+        console.log(data)
+      },
+      error: (error) => {
+        console.error('Error updating book: ', error);
+        if (error.error.message && typeof error.error.message === 'string') {
+          this.authService.alert.set(error.error.message);
 
-            if (this.dataFetchingTimeout) {
-              clearTimeout(this.dataFetchingTimeout)
-            }
-  
-            this.dataFetchingTimeout = setTimeout(() => {
-              this.authService.alert.set('')
-            }, 2500)
+          if (this.dataFetchingTimeout) {
+            clearTimeout(this.dataFetchingTimeout)
           }
+
+          this.dataFetchingTimeout = setTimeout(() => {
+            this.authService.alert.set('')
+          }, 2500)
         }
-      });
+      }
+    });
 
-      this.bibliothek.books?.splice(this.indexBook, 1, this.bookService.bookSelected()!)
-    } 
-
+    this.bibliothek.books?.splice(this.indexBook, 1, this.bookService.bookSelected()!)
     this.bookService.selectBook(null);
   }
 
@@ -411,12 +443,13 @@ export class BibliothekComponent implements OnInit, OnDestroy {
     if (editor === null) { 
         return; 
     }
-    
+    console.log("page clicked")
     this.bookService.retrieveEditorContent()
 
     const page = this.bookService.bookSelected()?.pages![pageClicked.index];
+    console.log(page && page.content)
 
-    if (page && page.content) {
+    if (page && typeof page.content === 'string') {
       
       this.bookService.selectPage(page);
 

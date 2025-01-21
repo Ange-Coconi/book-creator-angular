@@ -187,17 +187,20 @@ export class BookService {
       const pageIndex = pageSelected.index;
   
       if (pageIndex === pagesLength - 1) {
-        const newPage = { index: pagesLength, content: '', bookId: bookSelected.id };
+        const newPage: Page = { index: pagesLength, content: '', bookId: bookSelected.id };
   
         if (newPage && newPage.bookId !== undefined) {
+          bookSelected.pages.push(newPage)
           this.selectPage(newPage);
         }
-      } else {
-        const newPage = { index: pageIndex, content: '', bookId: bookSelected.id };
+      } else {  
+        const newPage: Page = { index: pageIndex, content: '', bookId: bookSelected.id };
         
         if (newPage && newPage.bookId !== undefined) {
           updateIndex(bookSelected, pageIndex);
+          bookSelected.pages.splice(pageIndex, 0, newPage)
           this.selectPage(newPage);
+          console.log(bookSelected)
         }
       }
     } else {

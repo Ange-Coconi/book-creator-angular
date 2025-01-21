@@ -9,10 +9,14 @@ import { ViewService } from '../../view.service';
   template: `
     <div id="toolbar" class="fixed w-48 h-full flex flex-col justify-center items-center mr-2"> 
       @if (bookService.viewBook()) {
-        <button class="absolute top-0 mt-8 w-full text-white bg-slate-900/75 px-2 py-2 border rounded-md shadow-md hover:opacity-80" (click)="bookService.handleViewEditor()">Book Editor</button>
-        <div class="w-full mb-8 flex justify-between">
-            <app-button-editor class="block w-full" name="previous" (boutonClicked)="viewBook.handlePreviousPage()"/>
-            <app-button-editor class="block w-full" name="next" (boutonClicked)="viewBook.handleNextPage()"/>
+        <button class="absolute top-0 mt-16 w-full text-white bg-slate-900/75 px-2 py-2 border rounded-md shadow-md hover:opacity-80" (click)="bookService.handleViewEditor()">Book Editor</button>
+        <div class="w-full mb-8 flex justify-center">
+            <app-button-editor class="block w-[40%] mr-2" name="previous" (boutonClicked)="viewBook.handlePreviousPage()"/>
+            <app-button-editor class="block w-[40%]" name="next" (boutonClicked)="viewBook.handleNextPage()"/>
+        </div>
+        <div class="w-full mb-8 flex justify-center mt-12">
+            <app-button-editor class="block w-[40%] mr-2" name="Zoom +" (boutonClicked)="zoomPlus.emit()"/>
+            <app-button-editor class="block w-[40%]" name="Zoom -" (boutonClicked)="zoomMinus.emit()"/>
         </div>
       } @else {
         <button class="absolute top-0 mt-8 w-full text-white bg-slate-900/75 px-2 py-2 border rounded-md shadow-md hover:opacity-80"  (click)="bookService.handleViewBook()">View Book</button>

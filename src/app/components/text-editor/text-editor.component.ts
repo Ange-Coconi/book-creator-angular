@@ -75,7 +75,7 @@ export class TextEditorComponent implements AfterViewInit, OnInit, OnChanges {
   }
 
   handleZoomPlus() {
-    if (this.multiplicator > 1.6) return
+    if (this.multiplicator > 1.5) return
 
     this.multiplicator += 0.1
 
@@ -100,7 +100,7 @@ export class TextEditorComponent implements AfterViewInit, OnInit, OnChanges {
   }
   
   handleZoomMinus() {
-    if (this.multiplicator < 0.8) return
+    if (this.multiplicator < 0.4) return
   
     this.multiplicator -= 0.1
   
