@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnDestroy} from '@angular/core';
+import { AfterViewInit, Component, Input, OnChanges, OnDestroy, OnInit, signal, SimpleChanges} from '@angular/core';
 import { BookService } from '../../book.service';
 
 
@@ -11,7 +11,13 @@ import { BookService } from '../../book.service';
     <div class="containerEditor">
         <div 
           id="editor" 
-          contenteditable="true" class="w-full h-full block p-4 border-slate-900/75 rounded-lg bg-white text-xs" 
+          contenteditable="true"
+          [style.width]="width()"
+          [style.height]="height()"
+          [style.padding]="px() + ' ' + py()" 
+          [style.fontSize]="fontSize()"
+          [style.lineHeight]="lineHeight()"
+          class="block border-slate-900/75 rounded-lg bg-white text-xs" 
           (change)="this.bookService.checkOverflow()"
           >
         </div>
@@ -33,7 +39,133 @@ import { BookService } from '../../book.service';
   } 
   `
 })
-export class TextEditorComponent implements AfterViewInit {
+export class TextEditorComponent implements AfterViewInit, OnInit, OnChanges {
+  baseWidth: string = '';
+  baseHeight: string = '';
+  basePx: string = '';
+  basePy: string = '';
+  baseFontSize: string = '12px';
+  baseLineHeight: string = `${12 * 1.4}px`;
+
+  multiplicator: number = 1;
+
+  width = signal<string>('');
+  height = signal<string>('');
+  px = signal<string>('');
+  py = signal<string>('');
+  fontSize = signal<string>('12px');
+  lineHeight = signal<string>(`${12 * 1.4}px`);
+
+  @Input()
+  zoomPlusInfo!: boolean;
+
+  @Input()
+  zoomMinusInfo!: boolean;
+
+  ngOnChanges(changes: SimpleChanges): void {
+
+      if (changes['zoomPlusInfo'] && !changes['zoomPlusInfo'].firstChange) {
+        this.handleZoomPlus()
+      }
+
+      if (changes['zoomMinusInfo'] && !changes['zoomMinusInfo'].firstChange) {
+        this.handleZoomMinus()
+      }
+
+  }
+
+  handleZoomPlus() {
+    if (this.multiplicator > 1.6) return
+
+    this.multiplicator += 0.1
+
+    const newWidth = (this.multiplicator * parseInt(this.baseWidth, 10)).toFixed(1);
+    this.width.set(`${newWidth}mm`);
+
+    const newHeight = (this.multiplicator * parseInt(this.baseHeight, 10)).toFixed(1);
+    this.height.set(`${newHeight}mm`);
+
+    const newPx = (this.multiplicator * parseInt(this.basePx, 10)).toFixed(1);
+    this.px.set(`${newPx}px`);
+
+    const newPy = (this.multiplicator * parseInt(this.basePy, 10)).toFixed(1);
+    this.py.set(`${newPy}px`);
+
+    const newFontSize = (this.multiplicator * parseInt(this.baseFontSize, 10)).toFixed(1);
+    this.fontSize.set(`${newFontSize}px`);
+
+    const newLineHeight = (this.multiplicator * parseInt(this.baseLineHeight, 10)).toFixed(1);
+    this.lineHeight.set(`${newLineHeight}px`);
+
+  }
+  
+  handleZoomMinus() {
+    if (this.multiplicator < 0.8) return
+  
+    this.multiplicator -= 0.1
+  
+    const newWidth = (this.multiplicator * parseInt(this.baseWidth, 10)).toFixed(1);
+    this.width.set(`${newWidth}mm`);
+  
+    const newHeight = (this.multiplicator * parseInt(this.baseHeight, 10)).toFixed(1);
+    this.height.set(`${newHeight}mm`);
+  
+    const newPx = (this.multiplicator * parseInt(this.basePx, 10)).toFixed(1);
+    this.px.set(`${newPx}px`);
+  
+    const newPy = (this.multiplicator * parseInt(this.basePy, 10)).toFixed(1);
+    this.py.set(`${newPy}px`);
+  
+    const newFontSize = (this.multiplicator * parseInt(this.baseFontSize, 10)).toFixed(1);
+    this.fontSize.set(`${newFontSize}px`);
+  
+    const newLineHeight = (this.multiplicator * parseInt(this.baseLineHeight, 10)).toFixed(1);
+    this.lineHeight.set(`${newLineHeight}px`);
+  }
+  
+
+  ngOnInit(): void {
+    const bookSelected = this.bookService.bookSelected();
+
+    if (!bookSelected) {
+      console.error('No book selected');
+      return;
+    }
+
+    if (bookSelected.format === 'big') {
+      this.width.set('210mm');
+      this.height.set('297mm');
+      this.baseWidth = '210mm';
+      this.baseHeight = '297mm';
+    } else if (bookSelected.format === 'medium') {
+      this.width.set('148mm');
+      this.height.set('210mm');
+      this.baseWidth = '148mm';
+      this.baseHeight = '210mm';
+    } else if (bookSelected.format === 'small') {
+      this.width.set('105mm');
+      this.height.set('148mm');
+      this.baseWidth = '105mm';
+      this.baseHeight = '148mm';
+    }
+
+    if (bookSelected.padding === 'big') {
+      this.px.set('20px');
+      this.py.set('30px');
+      this.basePx = '20px';
+      this.basePy = '30px';
+    } else if (bookSelected.padding === 'medium') {
+      this.px.set('10px');
+      this.py.set('20px');
+      this.basePx = '10px';
+      this.basePy = '20px';
+    } else if (bookSelected.padding === 'small') {
+      this.px.set('5px');
+      this.py.set('10px');
+      this.basePx = '5px';
+      this.basePy = '10px';
+    }
+  }
 
   ngAfterViewInit() {
     const editor = document.getElementById("editor");
@@ -67,6 +199,7 @@ export class TextEditorComponent implements AfterViewInit {
         console.error('New page has undefined bookId');
       }
     }
+     
   }
   
 

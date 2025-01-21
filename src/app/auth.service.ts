@@ -10,6 +10,7 @@ import { User } from './models/user.model';
 export class AuthService {
   private apiUrl = 'http://localhost:3000/auth'; 
   userData = signal<User | null>(null);
+  alert = signal<string>('');
 
   constructor(private http: HttpClient) { }
 

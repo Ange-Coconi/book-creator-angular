@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { BibliothekComponent } from '../../components/bibliothek/bibliothek.component';
 import { TextEditorComponent } from '../../components/text-editor/text-editor.component';
 import { BookService } from '../../book.service';
@@ -18,9 +18,13 @@ import { DataService } from '../../data.service';
         @if (bookService.viewBook()) {
           <app-view-book class="editor"/>
         } @else {
-          <app-text-editor class="editor"/>
+          <app-text-editor class="editor" [zoomMinusInfo]="zoomMinusInfo" [zoomPlusInfo]="zoomPlusInfo"/>
         }
-        <app-toolbar class="sidebar-right"/>
+        <app-toolbar 
+        class="sidebar-right"
+        (zoomPlus)="zoomPlusClicked()"
+        (zoomMinus)="zoomMinusClicked()"
+        />
       }
     </div>  
   `, 
@@ -59,7 +63,16 @@ import { DataService } from '../../data.service';
   `
 })
 export class CreationBookComponent {
+  zoomPlusInfo: boolean = false;
+  zoomMinusInfo: boolean = false;
 
+  zoomPlusClicked() {
+    this.zoomPlusInfo = !this.zoomPlusInfo;
+  }
+
+  zoomMinusClicked() {
+    this.zoomMinusInfo = !this.zoomMinusInfo;
+  }
 
   constructor (public bookService: BookService, public dataservice: DataService) {}
 

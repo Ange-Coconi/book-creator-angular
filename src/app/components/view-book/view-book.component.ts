@@ -80,6 +80,8 @@ export class ViewBookComponent implements OnInit, OnDestroy {
 
     const pageDefault: Page = {index: 0, content: '', bookId: this.bookService.bookSelected()!.id}
 
+    console.log(this.viewService.lisfOfPage());
+
     this.viewService.lisfOfPage().forEach(page => {
       if (page.index % 2 === 0) {
         const pageRectoVerso: PageRectoVerso = {
@@ -88,6 +90,7 @@ export class ViewBookComponent implements OnInit, OnDestroy {
           verso: {...pageDefault}
         }
         this.viewService.pageListRectoVerso().push(pageRectoVerso);
+        console.log(this.viewService.pageListRectoVerso())
 
       } else {
         this.viewService.pageListRectoVerso()[Math.floor(page.index / 2)].verso = {...page};

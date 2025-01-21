@@ -118,19 +118,25 @@ export class BookService {
   }
 
   handleClickElsewhere(event: MouseEvent) {
-
-    const window = document.getElementById('windowTitle'); // Replace with your popup class or ID
-    if (window && window.contains(event.target as Node)) {
-      return;
-    }
-
+    
     if (this.windowCreationNewBook()) {
+      const window = document.getElementById('windowTitle'); // Replace with your popup class or ID
+      if (window && window.contains(event.target as Node)) {
+        return;
+      }
+
       this.windowCreationNewBook.set(false);
       document.removeEventListener('click', this.boundHandleClickElsewhere)
       if (this.titleTimeout) {
         clearTimeout(this.titleTimeout)
       } 
+
     } else {
+      const window = document.getElementById('windowFolderCreation'); // Replace with your popup class or ID
+      if (window && window.contains(event.target as Node)) {
+        return;
+      }
+
       this.windowCreationFolder.set(false);
       document.removeEventListener('click', this.boundHandleClickElsewhere)
       if (this.newFolderTimeout) {

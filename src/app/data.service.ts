@@ -16,7 +16,7 @@ export class DataService {
     return this.http.get(`${this.apiUrl}/books/dashboard`).pipe(
       map(response => response),
       catchError(error => { 
-        console.error('Error fetching books for dashboard', error); 
+        console.error('Error fetching books dashboard', error); 
         throw error; 
       })
     );
@@ -61,13 +61,13 @@ export class DataService {
     }).pipe(
       map(response => response),
       catchError(error => { 
-        console.error('Error fetching folder', error); 
+        console.error('Error creating a folder: ', error); 
         throw error; 
       })
     );
   };
 
-  createBook(title: string, folderId: number): Observable<any> {
+  createBook(title: string, format: string, padding: string, folderId: number): Observable<any> {
     return this.http.post(`${this.apiUrl}/books`, {
       body: {
         title,
@@ -76,7 +76,7 @@ export class DataService {
     }).pipe(
       map(response => response),
       catchError(error => { 
-        console.error('Error fetching folder', error); 
+        console.error('Error creating a book: ', error); 
         throw error; 
       })
     );
@@ -86,7 +86,7 @@ export class DataService {
     return this.http.delete(`${this.apiUrl}/folders/${folderId}`).pipe(
       map(response => response),
       catchError(error => { 
-        console.error('Error fetching folder', error); 
+        console.error('Error deletin a folder', error); 
         throw error; 
       })
     );
@@ -96,21 +96,21 @@ export class DataService {
     return this.http.delete(`${this.apiUrl}/folders/${bookId}`).pipe(
       map(response => response),
       catchError(error => { 
-        console.error('Error fetching folder', error); 
+        console.error('Error deleting a book: ', error); 
         throw error; 
       })
     );
   };
 
   updateBook(bookId: number, pages: Page[]): Observable<any> {
-    return this.http.put(`${this.apiUrl}/folders/${bookId}`, {
+    return this.http.put(`${this.apiUrl}/books/${bookId}`, {
       body: {
         pages
       }
     }).pipe(
       map(response => response),
       catchError(error => { 
-        console.error('Error fetching folder', error); 
+        console.error('Error updating book', error); 
         throw error; 
       })
     );
