@@ -87,6 +87,8 @@ export class AppComponent implements OnInit {
         return 'form-background';
       case '/sign-in':
         return 'form-background';
+      case '/account':
+        return 'form-background';
       default:
         return 'default-background';
     }

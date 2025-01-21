@@ -5,6 +5,7 @@ import { BookDashboardComponent } from '../../components/book-dashboard/book-das
 import { CommonModule } from '@angular/common';
 import { DataService } from '../../data.service';
 import { Book } from '../../models/book.model';
+import { AuthService } from '../../auth.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -90,6 +91,7 @@ export class DashboardComponent implements OnInit {
   bookDashboard: Book[] = []
 
   ngOnInit() {
+    
 
     this.dataservice.getBooksDashboard().subscribe({
       next: (data) => {
@@ -109,5 +111,10 @@ export class DashboardComponent implements OnInit {
 
   }
 
-  constructor (public bookService: BookService, public viewService: ViewService, public dataservice: DataService) {}
+  constructor (
+    public bookService: BookService, 
+    public viewService: ViewService, 
+    public dataservice: DataService,
+    public authService: AuthService
+  ) {}
 }

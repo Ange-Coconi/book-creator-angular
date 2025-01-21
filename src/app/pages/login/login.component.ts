@@ -47,7 +47,6 @@ export class LoginComponent implements OnInit {
     ) {}
 
   ngOnInit(): void {
-    console.log("haha")
     this.loginForm = this.fb.group({
       username: ['', Validators.required],
       password: ['', Validators.required],
@@ -63,8 +62,10 @@ export class LoginComponent implements OnInit {
 
       this.authService.login(username, password).subscribe({
             next: (data) => {
+              
+              this.authService.userData.set(data);
 
-              this.router.navigate(['/dashboard']);
+              this.router.navigate(['/']);
             },
             error: (error) => {
               console.error('Error fetching books dashboard: ', error);
