@@ -4,6 +4,7 @@ import { CreationBookComponent } from './pages/creation-book/creation-book.compo
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { LoginComponent } from './pages/login/login.component';
 import { SignInComponent } from './pages/sign-in/sign-in.component';
+import { AccountComponent } from './pages/account/account.component';
 
 export const routes: Routes = [
     {
@@ -30,5 +31,10 @@ export const routes: Routes = [
         path: 'sign-in',
         title: 'Sign-In',
         component: SignInComponent,
+    },
+    {
+        path: `account`,
+        title: 'Account',
+        component: AccountComponent,
     },
 ];

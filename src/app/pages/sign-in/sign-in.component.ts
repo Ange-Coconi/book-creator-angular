@@ -77,7 +77,7 @@ export class SignInComponent implements OnInit {
       this.authService.signIn(username, password, email).subscribe({
         next: (data) => {
 
-          this.router.navigate(['/dashboard']);
+          this.router.navigate(['/login']);
         },
         error: (error) => {
           console.error('Error sign-in : ', error);

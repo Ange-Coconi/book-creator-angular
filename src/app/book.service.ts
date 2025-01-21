@@ -1,6 +1,5 @@
 import { Injectable, signal } from '@angular/core';
 import { Book } from './models/book.model';
-import { Folder } from './models/folder.model';
 import { Page } from './models/page.model';
 import { ViewService } from './view.service';
 import { updateIndex } from './shared/updateIndex';
