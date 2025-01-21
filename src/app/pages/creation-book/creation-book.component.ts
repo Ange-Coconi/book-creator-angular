@@ -16,7 +16,7 @@ import { DataService } from '../../data.service';
       
       @if (this.bookService.bookSelected() !== null) {
         @if (bookService.viewBook()) {
-          <app-view-book class="editor"/>
+          <app-view-book class="editor" [zoomMinusInfo]="zoomMinusInfo" [zoomPlusInfo]="zoomPlusInfo"/>
         } @else {
           <app-text-editor class="editor" [zoomMinusInfo]="zoomMinusInfo" [zoomPlusInfo]="zoomPlusInfo"/>
         }
