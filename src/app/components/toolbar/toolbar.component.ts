@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { ButtonEditorComponent } from '../../shared/button-editor/button-editor.component';
 import { BookService } from '../../book.service';
 import { ViewService } from '../../view.service';
@@ -7,31 +7,41 @@ import { ViewService } from '../../view.service';
   selector: 'app-toolbar',
   imports: [ButtonEditorComponent],
   template: `
-    <div id="toolbar" class="fixed w-48 h-full flex flex-col justify-center items-start mr-2"> 
+    <div id="toolbar" class="fixed w-48 h-full flex flex-col justify-center items-center mr-2"> 
       @if (bookService.viewBook()) {
-        <app-button-editor class="absolute top-0 mt-8 w-full" name="Book Editor" (boutonClicked)="bookService.handleViewEditor()"/>
+        <button class="absolute top-0 mt-8 w-full text-white bg-slate-900/75 px-2 py-2 border rounded-md shadow-md hover:opacity-80" (click)="bookService.handleViewEditor()">Book Editor</button>
         <div class="w-full mb-8 flex justify-between">
             <app-button-editor class="block w-full" name="previous" (boutonClicked)="viewBook.handlePreviousPage()"/>
             <app-button-editor class="block w-full" name="next" (boutonClicked)="viewBook.handleNextPage()"/>
         </div>
       } @else {
-        <app-button-editor class="absolute top-0 mt-8 w-full" name="View Book" (boutonClicked)="bookService.handleViewBook()"/>
-        <div class="w-full mb-8 flex justify-between">
-            <app-button-editor class="block w-full" name="previous" (boutonClicked)="bookService.handlePreviousPage()"/>
-            <app-button-editor class="block w-full" name="next" (boutonClicked)="bookService.handleNextPage()"/>
+        <button class="absolute top-0 mt-8 w-full text-white bg-slate-900/75 px-2 py-2 border rounded-md shadow-md hover:opacity-80"  (click)="bookService.handleViewBook()">View Book</button>
+        <div class="w-full mb-8 flex justify-center">
+            <app-button-editor class="block w-[40%] mr-2" name="previous" (boutonClicked)="bookService.handlePreviousPage()"/>
+            <app-button-editor class="block w-[40%]" name="next" (boutonClicked)="bookService.handleNextPage()"/>
         </div>
-        <app-button-editor class="block w-full" name="bold" (boutonClicked)="handleBoldEvent()"/>
-        <app-button-editor class="block w-full" name="italic" (boutonClicked)="handleItalicEvent()"/>
-        <app-button-editor class="block w-full" name="underline" (boutonClicked)="handleUnderlineEventNew()"/>
-        <app-button-editor class="block w-full" name="remove style" (boutonClicked)="handleRemoveStyle()"/>
-        <app-button-editor class="block w-full" name="size +" (boutonClicked)="adjustSelectionFontSize('increase')"/>
-        <app-button-editor class="block w-full" name="size -" (boutonClicked)="adjustSelectionFontSize('decrease')"/>
+        <app-button-editor class="block w-[80%] mb-1" name="bold" (boutonClicked)="handleBoldEvent()"/>
+        <app-button-editor class="block w-[80%] mb-1" name="italic" (boutonClicked)="handleItalicEvent()"/>
+        <app-button-editor class="block w-[80%] mb-1" name="underline" (boutonClicked)="handleUnderlineEventNew()"/>
+        <app-button-editor class="block w-[80%] mb-1" name="remove style" (boutonClicked)="handleRemoveStyle()"/>
+        <app-button-editor class="block w-[80%] mb-1" name="size +" (boutonClicked)="adjustSelectionFontSize('increase')"/>
+        <app-button-editor class="block w-[80%] mb-1" name="size -" (boutonClicked)="adjustSelectionFontSize('decrease')"/>
+        <div class="w-full mb-8 flex justify-center mt-8">
+            <app-button-editor class="block w-[40%] mr-2" name="Zoom +" (boutonClicked)="zoomPlus.emit()"/>
+            <app-button-editor class="block w-[40%]" name="Zoom -" (boutonClicked)="zoomMinus.emit()"/>
+        </div>
       }
     </div> 
   `,
   styles: ``
 })
 export class ToolbarComponent {
+
+  @Output()
+  zoomPlus = new EventEmitter<any>()
+
+  @Output()
+  zoomMinus = new EventEmitter<any>()
 
   constructor (public bookService: BookService, public viewBook: ViewService) {}
   

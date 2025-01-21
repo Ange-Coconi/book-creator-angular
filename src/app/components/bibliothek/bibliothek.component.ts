@@ -11,10 +11,12 @@ import { ViewService } from '../../view.service';
 import { DataService } from '../../data.service';
 import { Book } from '../../models/book.model';
 import { isFolder } from '../../shared/isFolder';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AuthService } from '../../auth.service';
 
 @Component({
   selector: 'app-bibliothek',
-  imports: [BookComponent, FolderComponent, CommonModule, PageComponent],
+  imports: [BookComponent, FolderComponent, CommonModule, PageComponent, FormsModule, ReactiveFormsModule],
   providers: [],
   template: `
     <div 
@@ -62,15 +64,65 @@ import { isFolder } from '../../shared/isFolder';
       }
       
     </div>
-    @if (bookService.windowCreationNewBook() || bookService.windowCreationFolder()) {
+    @if (bookService.windowCreationFolder()) {
       <div class="fixed w-full h-full top-0 left-0 z-[52] bg-slate-900/75 text-white">
         <form 
-          id="windowTitle" 
-          (submit)="bookService.windowCreationNewBook() ? handleSubmitTitle($event) : handleSubmitName($event)" 
-          class="fixed top-1/3 left-1/3 w-2/6 h-2/6 z-[55] border rounded-xl flex flex-col justify-center items-center">
-          <label class="mb-2 text-xl" for="title">{{bookService.windowCreationNewBook() ? "Title" : "Name"}}</label>
-          <input class="mb-12 w-96 px-2 py-1 text-black" type="text" id="title" name="title" required/>
+          id="windowFolderCreation" 
+          (submit)="handleSubmitName($event)" 
+          class="fixed top-[20%] left-1/3 w-2/6 h-2/6 z-[55] border rounded-xl flex flex-col justify-center items-center">
+          <label class="mb-2 text-xl" for="name">{{"Name"}}</label>
+          <input class="mb-12 w-96 px-2 py-1 text-black" type="text" id="name" name="name" required/>
           <button class="text-lg px-4 py-2 border rounded-md shadow-md hover:opacity-80" type="submit">ok</button>
+        </form>
+      </div>
+    }
+    @if (bookService.windowCreationNewBook()) {
+      <div class="fixed w-full h-full top-0 left-0 z-[52] bg-slate-900/75 text-white">
+        <form [formGroup]="bookForm" 
+        (ngSubmit)="handleSubmitTitle($event)" 
+        id="windowTitle" 
+        class="fixed top-[20%] left-1/3 w-2/6 h-[55%] z-[55] border rounded-xl flex flex-col justify-center items-center"
+        autocomplete="off">
+          <label class="mb-2 text-xl" for="title">{{"Title"}}</label>
+          <input formControlName="title" 
+                class="mb-8 w-96 px-2 py-1 text-black" 
+                type="text" 
+                id="title" 
+                name="title" 
+                required/>
+          
+          <div class="w-full mb-4 flex flex-col justify-center items-center">
+            <label class="underline underline-offset-4">Size of the book : </label>
+            <div class="w-full flex justify-center items-center mt-2">
+              <label>
+                <input type="radio" formControlName="format" value="small" /> small
+              </label>
+              <label class="ml-6 mr-6">
+                <input type="radio" formControlName="format" value="medium" /> medium
+              </label>
+              <label>
+                <input type="radio" formControlName="format" value="big" /> big
+              </label>
+            </div>
+          </div>
+
+          <div class="w-full mb-8 flex flex-col justify-center items-center">
+            <label class="underline underline-offset-4">margin : </label>
+            <div class="w-full flex justify-center items-center mt-2">
+              <label>
+                <input type="radio" formControlName="padding" value="small" /> small
+              </label>
+              <label class="ml-6 mr-6">
+                <input type="radio" formControlName="padding" value="medium" /> medium
+              </label>
+              <label>
+                <input type="radio" formControlName="padding" value="big" /> big
+              </label> 
+            </div>
+          </div>
+
+          <button class="text-lg px-4 py-2 border rounded-md shadow-md hover:opacity-80" 
+                  type="submit">Create</button>
         </form>
       </div>
     }
@@ -94,6 +146,8 @@ export class BibliothekComponent implements OnInit, OnDestroy {
   pageToDelete: HTMLElement | null = null;
   isHovered = false;
   hoverTimeout: any;
+  bookForm: FormGroup;
+  dataFetchingTimeout: any;
 
   handleBookClicked(bookClicked: Book) {
 
@@ -180,7 +234,7 @@ export class BibliothekComponent implements OnInit, OnDestroy {
   handleSubmitName(event: any) {
     event.preventDefault();
     this.bookService.windowCreationFolder.set(false); // trigger window for title
-    const name = event.target.title.value  // retrieve user input for title
+    const name = event.target.name.value  // retrieve user input for title
 
     this.dataservice.createFolder(name, this.bibliothek.id).subscribe({
       next: (data) => {
@@ -188,7 +242,18 @@ export class BibliothekComponent implements OnInit, OnDestroy {
         this.bibliothek.subfolders?.push(data);
       },
       error: (error) => {
-        console.error('Error fetching books dashboard: ', error);
+        console.error('Error creating a folder: ', error);
+        if (error.error.message && typeof error.error.message === 'string') {
+          this.authService.alert.set(error.error.message);
+
+          if (this.dataFetchingTimeout) {
+            clearTimeout(this.dataFetchingTimeout)
+          }
+
+          this.dataFetchingTimeout = setTimeout(() => {
+            this.authService.alert.set('')
+          }, 2500)
+        }
       }
     });
 
@@ -200,17 +265,35 @@ export class BibliothekComponent implements OnInit, OnDestroy {
   handleSubmitTitle(event: any) {
     event.preventDefault();
     this.bookService.windowCreationNewBook.set(false); // trigger window for title
-    const title = event.target.title.value  // retrieve user input for title
     
-    this.dataservice.createBook(title, this.bibliothek.id).subscribe({
-      next: (data) => {
-        console.log(data)
-        this.bibliothek.books?.push(data);
-      },
-      error: (error) => {
-        console.error('Error fetching books dashboard: ', error);
-      }
-    });
+    if (this.bookForm.valid) {
+      console.log('Form Submitted', this.bookForm.value);
+
+      const title = this.bookForm.get('title')?.value; 
+      const size = this.bookForm.get('size')?.value; 
+      const padding = this.bookForm.get('padding')?.value;
+
+      this.dataservice.createBook(title, size, padding, this.bibliothek.id).subscribe({
+        next: (data) => {
+          console.log(data)
+          this.bibliothek.books?.push(data);
+        },
+        error: (error) => {
+          console.error('Error creating a book: ', error);
+          if (error.error.message && typeof error.error.message === 'string') {
+            this.authService.alert.set(error.error.message);
+  
+            if (this.dataFetchingTimeout) {
+              clearTimeout(this.dataFetchingTimeout)
+            }
+  
+            this.dataFetchingTimeout = setTimeout(() => {
+              this.authService.alert.set('')
+            }, 2500)
+          }
+        }
+      });
+    }
 
     if (this.bookService.titleTimeout) {
       clearTimeout(this.bookService.titleTimeout)
@@ -231,7 +314,18 @@ export class BibliothekComponent implements OnInit, OnDestroy {
             console.log(data)
           },
           error: (error) => {
-            console.error('Error fetching books dashboard: ', error);
+            console.error('Error deleting a book:', error);
+            if (error.error.message && typeof error.error.message === 'string') {
+              this.authService.alert.set(error.error.message);
+    
+              if (this.dataFetchingTimeout) {
+                clearTimeout(this.dataFetchingTimeout)
+              }
+    
+              this.dataFetchingTimeout = setTimeout(() => {
+                this.authService.alert.set('')
+              }, 2500)
+            }
           }
         });
 
@@ -247,7 +341,19 @@ export class BibliothekComponent implements OnInit, OnDestroy {
               console.log(data)
             },
             error: (error) => {
-              console.error('Error fetching books dashboard: ', error);
+              console.error('Error deleting a folder: ', error);
+              if (error.error.message && typeof error.error.message === 'string') {
+                this.authService.alert.set(error.error.message);
+
+                if (this.dataFetchingTimeout) {
+                  clearTimeout(this.dataFetchingTimeout)
+                }
+
+                this.dataFetchingTimeout = setTimeout(() => {
+                  this.authService.alert.set('')
+                }, 2500)
+              }
+              
             }
           });
           this.bibliothek.subfolders.splice(indexFolder, 1)
@@ -271,9 +377,28 @@ export class BibliothekComponent implements OnInit, OnDestroy {
  
   handleClickBackFromBook() { 
     this.bookService.retrieveEditorContent()
+    console.log(this.bookService.bookSelected()?.id)
 
     if (this.bibliothek.root) {
-      this.dataservice.updateBook(this.bookService.bookSelected()?.id!, this.bookService.bookSelected()?.pages!)
+      this.dataservice.updateBook(this.bookService.bookSelected()?.id!, this.bookService.bookSelected()?.pages!).subscribe({
+        next: (data) => {
+          console.log(data)
+        },
+        error: (error) => {
+          console.error('Error updating book: ', error);
+          if (error.error.message && typeof error.error.message === 'string') {
+            this.authService.alert.set(error.error.message);
+
+            if (this.dataFetchingTimeout) {
+              clearTimeout(this.dataFetchingTimeout)
+            }
+  
+            this.dataFetchingTimeout = setTimeout(() => {
+              this.authService.alert.set('')
+            }, 2500)
+          }
+        }
+      });
 
       this.bibliothek.books?.splice(this.indexBook, 1, this.bookService.bookSelected()!)
     } 
@@ -307,7 +432,7 @@ export class BibliothekComponent implements OnInit, OnDestroy {
           this.bibliothek = data;
         },
         error: (error) => {
-          console.error('Error fetching books dashboard: ', error);
+          console.error('Error fetching folder when click back: ', error);
         }
       });
     }    
@@ -320,7 +445,7 @@ export class BibliothekComponent implements OnInit, OnDestroy {
         this.bibliothek = data;
       },
       error: (error) => {
-        console.error('Error fetching books dashboard: ', error);
+        console.error('Error fetching a folder when click folder: ', error);
       }
     });
   }
@@ -336,7 +461,8 @@ export class BibliothekComponent implements OnInit, OnDestroy {
         
       },
       error: (error) => {
-        console.error('Error fetching books dashboard: ', error);
+        console.error('Error fetching root folder: ', error);
+
       }
     });
 
@@ -352,6 +478,18 @@ export class BibliothekComponent implements OnInit, OnDestroy {
     this.bookService.viewBook.set(false);
   }
 
-  constructor (public bookService: BookService, public viewService: ViewService, public dataservice: DataService) {}
+  constructor (
+    private fb: FormBuilder, 
+    public bookService: BookService, 
+    public viewService: ViewService, 
+    public dataservice: DataService,
+    public authService: AuthService
+  ) {
+      this.bookForm = this.fb.group({
+        title: ['', Validators.required],
+        format: ['', Validators.required],
+        padding: ['', Validators.required]
+      });
+    }
 
 }
