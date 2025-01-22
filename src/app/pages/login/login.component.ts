@@ -37,6 +37,7 @@ import { Router } from '@angular/router';
 })
 export class LoginComponent implements OnInit {
   loginForm!: FormGroup;
+  loginTimeout: any;
 
   constructor(
       private fb: FormBuilder, 
@@ -68,7 +69,18 @@ export class LoginComponent implements OnInit {
               this.router.navigate(['/']);
             },
             error: (error) => {
-              console.error('Error fetching books dashboard: ', error);
+              console.error('Error login: ', error);
+              if (error.error.message && typeof error.error.message === 'string') {
+                this.authService.alert.set(error.error.message);
+      
+                if (this.loginTimeout) {
+                  clearTimeout(this.loginTimeout)
+                }
+      
+                this.loginTimeout = setTimeout(() => {
+                  this.authService.alert.set('')
+                }, 2500)
+              }
             }
           });
     }
