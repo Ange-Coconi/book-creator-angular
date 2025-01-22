@@ -29,7 +29,7 @@ import { Page } from '../../models/page.model';
         @for (page of viewService.pageListRectoVerso(); track page.index) {
           <app-book-page 
           [id]="'page-' + page.index.toString()"
-          class="page preserve3D absolute w-[96%] h-[96%] top-[2%] left-0 origin-left transition-transform duration-2000 "
+          class="page preserve3D absolute w-[96%] h-[96%] top-[2%] left-0 origin-left transition-transform duration-2000 text-justify"
           [ngClass]="'page-' + page.index.toString()"
           [style.zIndex]="(viewService.numberOfPage() - page.index + 1) * 5"
           [ngStyle]="{
@@ -156,10 +156,10 @@ export class ViewBookComponent implements OnInit, OnDestroy, AfterViewInit {
     const newPy = (this.multiplicator * parseInt(this.basePy, 10)).toFixed(1);
     this.py.set(`${newPy}px`);
 
-    const newFontSize = (this.multiplicator * parseInt(this.baseFontSize, 10)).toFixed(1);
+    const newFontSize = (this.multiplicator * parseInt(this.baseFontSize, 10)).toFixed(2);
     this.fontSize.set(`${newFontSize}px`);
 
-    const newLineHeight = (this.multiplicator * parseInt(this.baseLineHeight, 10)).toFixed(1);
+    const newLineHeight = (this.multiplicator * parseInt(this.baseLineHeight, 10)).toFixed(2);
     this.lineHeight.set(`${newLineHeight}px`);
 
     const newBaseWidth = (this.multiplicator * parseInt(this.baseBookWidth, 10)).toFixed(1);
@@ -192,10 +192,10 @@ export class ViewBookComponent implements OnInit, OnDestroy, AfterViewInit {
     const newPy = (this.multiplicator * parseInt(this.basePy, 10)).toFixed(1);
     this.py.set(`${newPy}px`);
   
-    const newFontSize = (this.multiplicator * parseInt(this.baseFontSize, 10)).toFixed(1);
+    const newFontSize = (this.multiplicator * parseInt(this.baseFontSize, 10)).toFixed(2);
     this.fontSize.set(`${newFontSize}px`);
   
-    const newLineHeight = (this.multiplicator * parseInt(this.baseLineHeight, 10)).toFixed(1);
+    const newLineHeight = (this.multiplicator * parseInt(this.baseLineHeight, 10)).toFixed(2);
     this.lineHeight.set(`${newLineHeight}px`);
 
     const newBaseWidth = (this.multiplicator * parseInt(this.baseBookWidth, 10)).toFixed(1);

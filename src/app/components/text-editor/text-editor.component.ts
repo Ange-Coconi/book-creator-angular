@@ -18,7 +18,7 @@ import { debounce } from 'lodash';
           [style.padding]="px() + ' ' + py()" 
           [style.fontSize]="fontSize()"
           [style.lineHeight]="lineHeight()"
-          class="block border-slate-900/75 rounded-lg bg-white text-xs" 
+          class="block border-slate-900/75 rounded-lg bg-white text-xs text-justify" 
           (input)="checkOverflow($event)"
           >
         </div>
@@ -70,11 +70,13 @@ export class TextEditorComponent implements AfterViewInit, OnInit, OnChanges {
     if (!editorElement) return
     const maxWidth = editorElement.offsetWidth;
     const maxHeight = editorElement.offsetHeight;
+    console.log("1")
 
     if (editorElement.scrollWidth > maxWidth || editorElement.scrollHeight > maxHeight) {
       const keyboardEvent = event as KeyboardEvent;
       keyboardEvent.preventDefault();
       event.preventDefault();
+      console.log("2")
       return false;
     }
     return true
@@ -243,7 +245,8 @@ export class TextEditorComponent implements AfterViewInit, OnInit, OnChanges {
   }
 
   validateContent() {
-    const editorElement = this.editor.nativeElement as HTMLElement;
+    const editorElement = document.getElementById('editor');
+    if (!editorElement) return
     while (editorElement.scrollHeight > editorElement.offsetHeight ||
            editorElement.scrollWidth > editorElement.offsetWidth) {
       editorElement.textContent = editorElement.textContent?.slice(0, -1) || '';
