@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Input, OnChanges, OnDestroy, OnInit, signal, SimpleChanges} from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnChanges, OnDestroy, OnInit, signal, SimpleChanges, ViewChild} from '@angular/core';
 import { BookService } from '../../book.service';
 
 
@@ -18,7 +18,7 @@ import { BookService } from '../../book.service';
           [style.fontSize]="fontSize()"
           [style.lineHeight]="lineHeight()"
           class="block border-slate-900/75 rounded-lg bg-white text-xs" 
-          (change)="this.bookService.checkOverflow()"
+          (input)="checkOverflow($event)"
           >
         </div>
     </div>
@@ -40,6 +40,7 @@ import { BookService } from '../../book.service';
   `
 })
 export class TextEditorComponent implements AfterViewInit, OnInit, OnChanges {
+  @ViewChild('editor', { static: true }) editor!: ElementRef;
   baseWidth: string = '';
   baseHeight: string = '';
   basePx: string = '';
@@ -61,6 +62,20 @@ export class TextEditorComponent implements AfterViewInit, OnInit, OnChanges {
 
   @Input()
   zoomMinusInfo!: boolean;
+
+  checkOverflow(event: Event) {
+    const editorElement = this.editor.nativeElement as HTMLElement;
+    const maxWidth = editorElement.offsetWidth;
+    const maxHeight = editorElement.offsetHeight;
+
+    if (editorElement.scrollWidth > maxWidth || editorElement.scrollHeight > maxHeight) {
+      const keyboardEvent = event as KeyboardEvent;
+      keyboardEvent.preventDefault();
+      event.preventDefault();
+      return false;
+    }
+    return true
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
 
@@ -125,6 +140,7 @@ export class TextEditorComponent implements AfterViewInit, OnInit, OnChanges {
   
 
   ngOnInit(): void {
+    this.editor.nativeElement.addEventListener('input', this.checkOverflow.bind(this));
     const bookSelected = this.bookService.bookSelected();
 
     if (!bookSelected) {

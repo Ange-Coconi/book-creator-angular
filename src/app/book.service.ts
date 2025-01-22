@@ -167,15 +167,6 @@ export class BookService {
     }
 }
   
-  checkOverflow() {
-    const editor = document.getElementById("editor");
-    if (editor === null) { return }
-
-    if (editor.scrollHeight > editor.clientHeight) {
-        this.handleNewPage();
-    }
-  }
-  
   handleNewPage() {
     this.retrieveEditorContent();
   

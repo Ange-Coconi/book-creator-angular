@@ -18,6 +18,9 @@ import { Router } from '@angular/router';
           <h2 class="mb-2"> Contact : </h2>
           <a class="underline underline-offset-2 hover:opacity-80" href="https://angecoconiwebsite.com" target="_blank" rel="noreferrer">ange coconi website</a>
         </div>
+        <div class="fixed bottom-[0px] left-0 w-full h-[2rem] flex justify-center items-center bg-slate-900/75 text-white rounded-xl">
+          <a href="https://www.freepik.com/free-vector/red-text-book-closed-icon_70015834.htm" target="_blank" rel="noreferrer">Image by jemastock on Freepik</a>
+        </div>
       } @else {
         <form class="w-[50%] h-[85%] flex flex-col mb-4 justify-center items-center bg-slate-900/75 text-white rounded-xl" [formGroup]="contactForm" (ngSubmit)="onSubmit()">
             <div class="w-[40%] flex flex-col mb-2">
