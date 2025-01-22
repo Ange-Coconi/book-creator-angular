@@ -12,50 +12,57 @@ import { Router } from '@angular/router';
   standalone: true,
   imports: [FormsModule, ReactiveFormsModule, CommonModule],
   template: `
-    <div class="w-full h-full flex justify-center items-end" >
-    <form class="w-[50%] h-[85%] flex flex-col mb-4 justify-center items-center bg-slate-900/75 text-white rounded-xl" [formGroup]="contactForm" (ngSubmit)="onSubmit()">
-        <div class="w-[40%] flex flex-col mb-2">
-          <label class="mb-1" for="firstname">First Name</label>
-          <input class="text-black px-2 rounded-lg h-[2rem] w-full" id="firstname" formControlName="firstname" type="text" required>
-          <div *ngIf="contactForm.get('firstname')?.invalid && (contactForm.get('firstname')?.dirty || contactForm.get('firstname')?.touched)">
-              <small *ngIf="contactForm.get('firstname')?.errors?.['required']">First Name is required.</small>
-          </div>
+    <div class="w-full h-full flex justify-center items-center" >
+      @if (redirection) {
+        <div class="w-[20%] h-[20%] flex flex-col mb-20 justify-center items-center bg-slate-900/75 text-white rounded-xl">
+          <h2 class="mb-2"> Contact : </h2>
+          <a class="underline underline-offset-2 hover:opacity-80" href="https://angecoconiwebsite.com" target="_blank" rel="noreferrer">ange coconi website</a>
         </div>
+      } @else {
+        <form class="w-[50%] h-[85%] flex flex-col mb-4 justify-center items-center bg-slate-900/75 text-white rounded-xl" [formGroup]="contactForm" (ngSubmit)="onSubmit()">
+            <div class="w-[40%] flex flex-col mb-2">
+              <label class="mb-1" for="firstname">First Name</label>
+              <input class="text-black px-2 rounded-lg h-[2rem] w-full" id="firstname" formControlName="firstname" type="text" required>
+              <div *ngIf="contactForm.get('firstname')?.invalid && (contactForm.get('firstname')?.dirty || contactForm.get('firstname')?.touched)">
+                  <small *ngIf="contactForm.get('firstname')?.errors?.['required']">First Name is required.</small>
+              </div>
+            </div>
 
-        <div class="w-[40%] flex flex-col mb-2">
-          <label class="mb-1" for="lastname">Last Name</label>
-          <input class="text-black px-2 rounded-lg h-[2rem] w-full" id="lastname" formControlName="lastname" type="text" required>
-          <div *ngIf="contactForm.get('lastname')?.invalid && (contactForm.get('lastname')?.dirty || contactForm.get('lastname')?.touched)">
-              <small *ngIf="contactForm.get('lastname')?.errors?.['required']">Last Name is required.</small>
-          </div>
-        </div>
-        
-        <div class="w-[40%] flex flex-col mb-6">
-          <label class="mb-1" for="email">Email</label>
-          <input class="text-black px-2 rounded-lg h-[2rem] w-full" id="email" formControlName="email" type="email">
-          <div *ngIf="contactForm.get('email')?.invalid && (contactForm.get('email')?.dirty || contactForm.get('email')?.touched)">
-              <small *ngIf="contactForm.get('email')?.errors?.['email']">Please enter a valid email address.</small>
-          </div>
-        </div>
+            <div class="w-[40%] flex flex-col mb-2">
+              <label class="mb-1" for="lastname">Last Name</label>
+              <input class="text-black px-2 rounded-lg h-[2rem] w-full" id="lastname" formControlName="lastname" type="text" required>
+              <div *ngIf="contactForm.get('lastname')?.invalid && (contactForm.get('lastname')?.dirty || contactForm.get('lastname')?.touched)">
+                  <small *ngIf="contactForm.get('lastname')?.errors?.['required']">Last Name is required.</small>
+              </div>
+            </div>
+            
+            <div class="w-[40%] flex flex-col mb-6">
+              <label class="mb-1" for="email">Email</label>
+              <input class="text-black px-2 rounded-lg h-[2rem] w-full" id="email" formControlName="email" type="email">
+              <div *ngIf="contactForm.get('email')?.invalid && (contactForm.get('email')?.dirty || contactForm.get('email')?.touched)">
+                  <small *ngIf="contactForm.get('email')?.errors?.['email']">Please enter a valid email address.</small>
+              </div>
+            </div>
 
-        <div class="w-[40%] flex flex-col mb-0">
-          <label class="mb-1" for="reason">Reason</label>
-          <input class="text-black px-2 rounded-lg h-[2rem] w-full" id="reason" formControlName="reason" type="reason" required>
-          <div *ngIf="contactForm.get('reason')?.invalid && (contactForm.get('reason')?.dirty || contactForm.get('reason')?.touched)">
-              <small *ngIf="contactForm.get('reason')?.errors?.['required']">Reason is required.</small>
-          </div>
-        </div> 
+            <div class="w-[40%] flex flex-col mb-0">
+              <label class="mb-1" for="reason">Reason</label>
+              <input class="text-black px-2 rounded-lg h-[2rem] w-full" id="reason" formControlName="reason" type="reason" required>
+              <div *ngIf="contactForm.get('reason')?.invalid && (contactForm.get('reason')?.dirty || contactForm.get('reason')?.touched)">
+                  <small *ngIf="contactForm.get('reason')?.errors?.['required']">Reason is required.</small>
+              </div>
+            </div> 
 
-        <div class="w-[90%] flex flex-col mb-4">
-          <label class="mb-1" for="message">Message</label>
-          <textarea class="text-black px-2 py-1 rounded-lg h-[8rem] w-full" id="message" formControlName="message" type="message" required></textarea>
-          <div *ngIf="contactForm.get('message')?.invalid && (contactForm.get('message')?.dirty || contactForm.get('message')?.touched)">
-              <small *ngIf="contactForm.get('message')?.errors?.['required']">Message is required.</small>
-          </div>
-        </div>
+            <div class="w-[90%] flex flex-col mb-4">
+              <label class="mb-1" for="message">Message</label>
+              <textarea class="text-black px-2 py-1 rounded-lg h-[8rem] w-full" id="message" formControlName="message" type="message" required></textarea>
+              <div *ngIf="contactForm.get('message')?.invalid && (contactForm.get('message')?.dirty || contactForm.get('message')?.touched)">
+                  <small *ngIf="contactForm.get('message')?.errors?.['required']">Message is required.</small>
+              </div>
+            </div>
 
-        <button class="text-white text-lg border-white py-1 px-2 border-2 rounded shadow-md hover:opacity-80" type="submit" [disabled]="contactForm.invalid">Send</button>
-    </form>
+            <button class="text-white text-lg border-white py-1 px-2 border-2 rounded shadow-md hover:opacity-80" type="submit" [disabled]="contactForm.invalid">Send</button>
+        </form>
+      }
     </div>
   `,
   styles:`
@@ -64,6 +71,7 @@ import { Router } from '@angular/router';
 export class ContactComponent implements OnInit {
   contactForm!: FormGroup;
   contactTimeout: any;
+  redirection: boolean = true;
 
   constructor(
     private fb: FormBuilder, 
