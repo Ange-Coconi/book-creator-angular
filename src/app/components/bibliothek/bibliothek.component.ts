@@ -351,6 +351,10 @@ export class BibliothekComponent implements OnInit, OnDestroy {
       const format = this.bookForm.get('format')?.value; 
       const padding = this.bookForm.get('padding')?.value;
 
+      console.log(title)
+      console.log(format)
+      console.log(padding)
+
       this.dataservice.createBook(title, format, padding, this.bibliothek.id).subscribe({
         next: (data) => {
           console.log(data)
