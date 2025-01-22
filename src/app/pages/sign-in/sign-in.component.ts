@@ -47,6 +47,7 @@ import { Router } from '@angular/router';
 })
 export class SignInComponent implements OnInit {
   signInForm!: FormGroup;
+  signinTimeout: any;
 
   constructor(
     private fb: FormBuilder, 
@@ -81,6 +82,18 @@ export class SignInComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error sign-in : ', error);
+          if (error.error.message && typeof error.error.message === 'string') {
+            this.authService.alert.set(error.error.message);
+  
+            if (this.signinTimeout) {
+              clearTimeout(this.signinTimeout)
+            }
+  
+            this.signinTimeout = setTimeout(() => {
+              this.authService.alert.set('')
+            }, 2500)
+          
+          }
         }
       });
     }
