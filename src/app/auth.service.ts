@@ -63,4 +63,24 @@ export class AuthService {
     );
   };
 
+  contact(firstname: string, lastname: string, email: string, reason: string, message: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/contact`, {
+        firstname,
+        lastname,
+        email,
+        reason,
+        message
+      }, {
+        withCredentials: true, // Include credentials
+        headers: new HttpHeaders({
+          'Content-Type': 'application/json',
+        })}).pipe(
+      map(response => response),
+      catchError(error => { 
+        console.error('Error sign-in : ', error); 
+        throw error; 
+      })
+    );
+  };
+
 }
