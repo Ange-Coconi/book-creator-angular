@@ -70,7 +70,7 @@ export class TextEditorComponent implements AfterViewInit, OnInit, OnChanges {
     if (!editorElement) return
     const maxWidth = editorElement.offsetWidth;
     const maxHeight = editorElement.offsetHeight;
-    console.log("1")
+
 
     if (editorElement.scrollWidth > maxWidth || editorElement.scrollHeight > maxHeight) {
       const keyboardEvent = event as KeyboardEvent;
@@ -78,7 +78,7 @@ export class TextEditorComponent implements AfterViewInit, OnInit, OnChanges {
       event.preventDefault();
       const text = editorElement.innerText;
       editorElement.innerText = text.slice(0, -1);
-      console.log("2")
+      this.bookService.handleNewPage();
       return false;
     }
     return true
