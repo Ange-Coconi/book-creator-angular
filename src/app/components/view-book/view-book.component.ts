@@ -179,7 +179,8 @@ export class ViewBookComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.multiplicator < 0.4) return
   
     this.multiplicator -= 0.1
-  
+    console.log(this.multiplicator)
+    console.log((this.multiplicator * parseInt(this.baseFontSize, 10)).toFixed(2))
     const newWidth = (this.multiplicator * parseInt(this.baseWidth, 10)).toFixed(1);
     this.width.set(`${newWidth}mm`);
   

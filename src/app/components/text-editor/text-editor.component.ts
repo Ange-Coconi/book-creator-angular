@@ -76,6 +76,8 @@ export class TextEditorComponent implements AfterViewInit, OnInit, OnChanges {
       const keyboardEvent = event as KeyboardEvent;
       keyboardEvent.preventDefault();
       event.preventDefault();
+      const text = editorElement.innerText;
+      editorElement.innerText = text.slice(0, -1);
       console.log("2")
       return false;
     }
