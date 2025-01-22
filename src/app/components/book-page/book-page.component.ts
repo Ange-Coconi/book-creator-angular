@@ -15,7 +15,7 @@ import { CommonModule } from '@angular/common';
         >
           <div 
               [id]="'page-' + data.index.toString() + '-recto'"
-              class="absolute w-full h-full backface-hidden px-5 py-5 text-xs "
+              class="absolute w-full h-full backface-hidden"
               [innerHTML]="data.recto.content"
               [style.zIndex]="(viewService.numberOfPage() - data.index + 1) * 5 + 1"
               [style]="'backface-visibility: hidden'"
@@ -24,7 +24,7 @@ import { CommonModule } from '@angular/common';
           
           <div 
               [id]="'page-' + data.index.toString() + '-verso'"
-              class="verso absolute w-full h-full px-5 py-5 text-xs "
+              class="verso absolute w-full h-full"
               [innerHTML]="data.verso.content"
               [style.zIndex]="(viewService.numberOfPage() - data.index + 1) * 5 - 1"
               [ngStyle]="{
