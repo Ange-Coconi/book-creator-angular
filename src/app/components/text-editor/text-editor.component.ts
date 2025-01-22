@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, ElementRef, Input, OnChanges, OnDestroy, OnInit, signal, SimpleChanges, ViewChild} from '@angular/core';
 import { BookService } from '../../book.service';
+import { debounce } from 'lodash';
 
 
 @Component({
@@ -63,7 +64,7 @@ export class TextEditorComponent implements AfterViewInit, OnInit, OnChanges {
   @Input()
   zoomMinusInfo!: boolean;
 
-  checkOverflow(event: Event) {
+  checkOverflowOriginal(event: Event) {
     const editorElement = this.editor.nativeElement as HTMLElement;
     const maxWidth = editorElement.offsetWidth;
     const maxHeight = editorElement.offsetHeight;
@@ -76,6 +77,10 @@ export class TextEditorComponent implements AfterViewInit, OnInit, OnChanges {
     }
     return true
   }
+
+  checkOverflow = debounce((event: Event) => {
+    return this.checkOverflowOriginal(event);
+  }, 100);
 
   ngOnChanges(changes: SimpleChanges): void {
 
@@ -112,6 +117,8 @@ export class TextEditorComponent implements AfterViewInit, OnInit, OnChanges {
     const newLineHeight = (this.multiplicator * parseInt(this.baseLineHeight, 10)).toFixed(1);
     this.lineHeight.set(`${newLineHeight}px`);
 
+    this.validateContent();
+
   }
   
   handleZoomMinus() {
@@ -136,11 +143,13 @@ export class TextEditorComponent implements AfterViewInit, OnInit, OnChanges {
   
     const newLineHeight = (this.multiplicator * parseInt(this.baseLineHeight, 10)).toFixed(1);
     this.lineHeight.set(`${newLineHeight}px`);
+
+    this.validateContent();
   }
   
 
   ngOnInit(): void {
-    this.editor.nativeElement.addEventListener('input', this.checkOverflow.bind(this));
+    this.editor.nativeElement.addEventListener('beforeinput', this.checkOverflow.bind(this));
     const bookSelected = this.bookService.bookSelected();
 
     if (!bookSelected) {
@@ -215,10 +224,23 @@ export class TextEditorComponent implements AfterViewInit, OnInit, OnChanges {
         console.error('New page has undefined bookId');
       }
     }
+
+    console.log(this.height())
+    console.log(this.width())
      
+  }
+
+  validateContent() {
+    const editorElement = this.editor.nativeElement as HTMLElement;
+    while (editorElement.scrollHeight > editorElement.offsetHeight ||
+           editorElement.scrollWidth > editorElement.offsetWidth) {
+      editorElement.textContent = editorElement.textContent?.slice(0, -1) || '';
+    }
   }
   
 
-  constructor (public bookService: BookService) {}
+  constructor (public bookService: BookService) {
+    this.checkOverflow = debounce(this.checkOverflow.bind(this), 100);
+  }
 }
 

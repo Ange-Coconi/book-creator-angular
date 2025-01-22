@@ -433,6 +433,10 @@ export class BibliothekComponent implements OnInit, OnDestroy {
         this.dataservice.deleteBook(this.bibliothek.books[index].id).subscribe({
           next: (data) => {
             console.log(data)
+            if (this.bibliothek.books) {
+              this.bibliothek.books.splice(index, 1)
+            }
+            
           },
           error: (error) => {
             console.error('Error deleting a book:', error);
@@ -450,7 +454,7 @@ export class BibliothekComponent implements OnInit, OnDestroy {
           }
         });
 
-        this.bibliothek.books.splice(index, 1)
+        
 
       } else {
         const indexFolder = this.bibliothek.subfolders.findIndex(folder => {
