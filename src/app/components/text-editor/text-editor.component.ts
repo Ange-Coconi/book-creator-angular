@@ -27,14 +27,11 @@ import { debounce } from 'lodash';
   </div>
   `,
   styles: `
-  .containerEditor {
-    width: 40vw;
-    max-width: 40vw;
-    height: 120vh;
-    max-height: 120vh;
+
+
+  #editor {
     overflow-x: auto; /* Horizontal scrolling */
     overflow-y: auto; /* Vertical scrolling */
-    
   }
 
   [contenteditable="true"]:focus {
