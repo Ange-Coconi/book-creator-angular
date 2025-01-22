@@ -41,7 +41,9 @@ import { debounce } from 'lodash';
   `
 })
 export class TextEditorComponent implements AfterViewInit, OnInit, OnChanges {
-  @ViewChild('editor', { static: true }) editor!: ElementRef;
+  @ViewChild('editor', { static: true }) 
+  editor!: ElementRef;
+
   baseWidth: string = '';
   baseHeight: string = '';
   basePx: string = '';
@@ -65,7 +67,8 @@ export class TextEditorComponent implements AfterViewInit, OnInit, OnChanges {
   zoomMinusInfo!: boolean;
 
   checkOverflowOriginal(event: Event) {
-    const editorElement = this.editor.nativeElement as HTMLElement;
+    const editorElement = document.getElementById('editor');
+    if (!editorElement) return
     const maxWidth = editorElement.offsetWidth;
     const maxHeight = editorElement.offsetHeight;
 
