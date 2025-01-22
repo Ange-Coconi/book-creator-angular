@@ -236,7 +236,6 @@ export class BibliothekComponent implements OnInit, OnDestroy {
 
     if (indexBook === -1 || indexBook === undefined) return;
     this.indexBook = indexBook;
-    
 
     this.dataservice.getBook(bookClicked.id).subscribe({
       next: (data) => {
@@ -395,11 +394,16 @@ export class BibliothekComponent implements OnInit, OnDestroy {
           const bookUploaded = data;
 
           this.bibliothek.books?.push(bookUploaded);
+
+          this.dataUpload = [];
+          this.uploadingProcess = false;
         },
         error: (error) => {
           console.error('Error creating a book: ', error);
           if (error.error.message && typeof error.error.message === 'string') {
             this.authService.alert.set(error.error.message);
+            this.dataUpload = [];
+            this.uploadingProcess = false;
   
             if (this.dataFetchingTimeout) {
               clearTimeout(this.dataFetchingTimeout)
@@ -416,9 +420,6 @@ export class BibliothekComponent implements OnInit, OnDestroy {
     if (this.bookService.titleTimeout) {
       clearTimeout(this.bookService.titleTimeout)
     }
-
-    this.dataUpload = [];
-    this.uploadingProcess = false;
   }
 
   handleDeleteElement() {
@@ -464,6 +465,10 @@ export class BibliothekComponent implements OnInit, OnDestroy {
           this.dataservice.deleteFolder(this.bibliothek.subfolders[indexFolder].id).subscribe({
             next: (data) => {
               console.log(data)
+              if (this.bibliothek.subfolders) {
+                this.bibliothek.subfolders.splice(indexFolder, 1)
+              }
+              
             },
             error: (error) => {
               console.error('Error deleting a folder: ', error);
@@ -481,7 +486,7 @@ export class BibliothekComponent implements OnInit, OnDestroy {
               
             }
           });
-          this.bibliothek.subfolders.splice(indexFolder, 1)
+          
         }
       }
     }
@@ -505,7 +510,9 @@ export class BibliothekComponent implements OnInit, OnDestroy {
 
     this.dataservice.updateBook(this.bookService.bookSelected()?.id!, this.bookService.bookSelected()?.pages!).subscribe({
       next: (data) => {
-
+        
+        this.bibliothek.books?.splice(this.indexBook, 1, this.bookService.bookSelected()!)
+        this.bookService.selectBook(null);
       },
       error: (error) => {
         console.error('Error updating book: ', error);
@@ -523,8 +530,7 @@ export class BibliothekComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.bibliothek.books?.splice(this.indexBook, 1, this.bookService.bookSelected()!)
-    this.bookService.selectBook(null);
+    
   }
 
   handlePageClicked(pageClicked: Page) {
