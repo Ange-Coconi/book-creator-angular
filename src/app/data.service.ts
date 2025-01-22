@@ -8,7 +8,7 @@ import { Page } from './models/page.model';
   providedIn: 'root'
 })
 export class DataService {
-  private apiUrl = 'http://localhost:3000/api'; 
+  private apiUrl = 'https://book-app-backend-a3d346b4aef7.herokuapp.com/api'; 
 
   constructor(private http: HttpClient) { }
 
