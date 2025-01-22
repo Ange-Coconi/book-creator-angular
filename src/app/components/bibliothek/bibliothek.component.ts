@@ -512,7 +512,6 @@ export class BibliothekComponent implements OnInit, OnDestroy {
       next: (data) => {
         
         this.bibliothek.books?.splice(this.indexBook, 1, this.bookService.bookSelected()!)
-        this.bookService.selectBook(null);
       },
       error: (error) => {
         console.error('Error updating book: ', error);
@@ -529,7 +528,7 @@ export class BibliothekComponent implements OnInit, OnDestroy {
         }
       }
     });
-
+    this.bookService.selectBook(null);
     
   }
 
