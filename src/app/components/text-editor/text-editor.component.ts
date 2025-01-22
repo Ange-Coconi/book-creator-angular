@@ -192,14 +192,16 @@ export class TextEditorComponent implements AfterViewInit, OnInit, OnChanges {
   }
 
   ngAfterViewInit() {
-    this.editor.nativeElement.addEventListener('beforeinput', this.checkOverflow.bind(this));
     const editor = document.getElementById("editor");
+    
     const bookSelected = this.bookService.bookSelected();
   
     if (!editor) {
       console.error('Editor element not found');
       return;
     }
+
+    editor.addEventListener('beforeinput', this.checkOverflow.bind(this));
   
     if (!bookSelected) {
       console.error('No book selected');
