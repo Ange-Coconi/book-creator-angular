@@ -8,7 +8,7 @@ import { User } from './models/user.model';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:3000/auth'; 
+  private apiUrl = 'https://book-app-backend-a3d346b4aef7.herokuapp.com/auth'; 
   userData = signal<User | null>(null);
   alert = signal<string>('');
 
