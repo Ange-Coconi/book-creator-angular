@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { Page } from './models/page.model';
@@ -13,7 +13,9 @@ export class DataService {
   constructor(private http: HttpClient) { }
 
   getBooksDashboard(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/books/dashboard`).pipe(
+    
+    console.log('Sending request with:', `${this.apiUrl}/books/dashboard`);
+    return this.http.get(`${this.apiUrl}/books/dashboard`, { withCredentials: true }).pipe(
       map(response => response),
       catchError(error => { 
         console.error('Error fetching books dashboard', error); 
@@ -23,7 +25,7 @@ export class DataService {
   }
 
   getBibliothek(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/bibliothek`).pipe(
+    return this.http.get(`${this.apiUrl}/bibliothek`, { withCredentials: true }).pipe(
       map(response => response),
       catchError(error => { 
         console.error('Error fetching bibliothek', error); 
@@ -33,7 +35,7 @@ export class DataService {
   }
 
   getBook(id: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/books/${id}`).pipe(
+    return this.http.get(`${this.apiUrl}/books/${id}`, { withCredentials: true }).pipe(
       map(response => response),
       catchError(error => { 
         console.error('Error fetching book', error); 
@@ -43,7 +45,7 @@ export class DataService {
   }
 
   getFolder(id: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/folders/${id}`).pipe(
+    return this.http.get(`${this.apiUrl}/folders/${id}`, { withCredentials: true }).pipe(
       map(response => response),
       catchError(error => { 
         console.error('Error fetching folder', error); 
@@ -54,11 +56,13 @@ export class DataService {
 
   createFolder(name: string, parentFolderId: number): Observable<any> {
     return this.http.post(`${this.apiUrl}/folders`, {
-      body: {
         name: name,
         parentFolderId: parentFolderId
-      }
-    }).pipe(
+    }, {
+        withCredentials: true, // Include credentials
+        headers: new HttpHeaders({
+          'Content-Type': 'application/json',
+        })}).pipe(
       map(response => response),
       catchError(error => { 
         console.error('Error creating a folder: ', error); 
@@ -68,12 +72,37 @@ export class DataService {
   };
 
   createBook(title: string, format: string, padding: string, folderId: number): Observable<any> {
+    console.log(format)
     return this.http.post(`${this.apiUrl}/books`, {
-      body: {
-        title,
-        folderId
-      }
-    }).pipe(
+      title,
+      folderId, 
+      format,
+      padding
+    }, {
+      withCredentials: true, // Include credentials
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json',
+      })}).pipe(
+      map(response => response),
+      catchError(error => { 
+        console.error('Error creating a book: ', error); 
+        throw error; 
+      })
+    );
+  };
+
+  createBookUploaded(dataUpload: string[], format: string, padding: string, folderId: number): Observable<any> {
+    console.log(format)
+    return this.http.post(`${this.apiUrl}/books/upload`, {
+      dataUpload,
+      folderId, 
+      format,
+      padding
+    }, {
+      withCredentials: true, // Include credentials
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json',
+      })}).pipe(
       map(response => response),
       catchError(error => { 
         console.error('Error creating a book: ', error); 
@@ -83,7 +112,7 @@ export class DataService {
   };
 
   deleteFolder(folderId: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/folders/${folderId}`).pipe(
+    return this.http.delete(`${this.apiUrl}/folders/${folderId}`, { withCredentials: true }).pipe(
       map(response => response),
       catchError(error => { 
         console.error('Error deletin a folder', error); 
@@ -93,7 +122,7 @@ export class DataService {
   };
 
   deleteBook(bookId: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/folders/${bookId}`).pipe(
+    return this.http.delete(`${this.apiUrl}/books/${bookId}`, { withCredentials: true }).pipe(
       map(response => response),
       catchError(error => { 
         console.error('Error deleting a book: ', error); 
@@ -104,10 +133,12 @@ export class DataService {
 
   updateBook(bookId: number, pages: Page[]): Observable<any> {
     return this.http.put(`${this.apiUrl}/books/${bookId}`, {
-      body: {
-        pages
-      }
-    }).pipe(
+        pages: pages
+    }, {
+      withCredentials: true, // Include credentials
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json',
+      })}).pipe(
       map(response => response),
       catchError(error => { 
         console.error('Error updating book', error); 
