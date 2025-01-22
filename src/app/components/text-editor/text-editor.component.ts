@@ -148,8 +148,7 @@ export class TextEditorComponent implements AfterViewInit, OnInit, OnChanges {
   }
   
 
-  ngOnInit(): void {
-    this.editor.nativeElement.addEventListener('beforeinput', this.checkOverflow.bind(this));
+  ngOnInit(): void { 
     const bookSelected = this.bookService.bookSelected();
 
     if (!bookSelected) {
@@ -193,6 +192,7 @@ export class TextEditorComponent implements AfterViewInit, OnInit, OnChanges {
   }
 
   ngAfterViewInit() {
+    this.editor.nativeElement.addEventListener('beforeinput', this.checkOverflow.bind(this));
     const editor = document.getElementById("editor");
     const bookSelected = this.bookService.bookSelected();
   
