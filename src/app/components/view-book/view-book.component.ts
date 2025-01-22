@@ -195,6 +195,8 @@ export class ViewBookComponent implements OnInit, OnDestroy, AfterViewInit {
   
     const newFontSize = (this.multiplicator * parseInt(this.baseFontSize, 10)).toFixed(2);
     this.fontSize.set(`${newFontSize}px`);
+
+    console.log(this.fontSize())
   
     const newLineHeight = (this.multiplicator * parseInt(this.baseLineHeight, 10)).toFixed(2);
     this.lineHeight.set(`${newLineHeight}px`);
