@@ -32,6 +32,8 @@ import { debounce } from 'lodash';
     max-width: 40vw;
     height: 120vh;
     max-height: 120vh;
+    overflow-x: auto; /* Horizontal scrolling */
+    overflow-y: auto; /* Vertical scrolling */
     
   }
 
@@ -122,6 +124,10 @@ export class TextEditorComponent implements AfterViewInit, OnInit, OnChanges {
 
     this.validateContent();
 
+    const editorElement = document.getElementById('editor');
+    if (!editorElement) return
+    editorElement.style.overflow = 'auto'; 
+
   }
   
   handleZoomMinus() {
@@ -148,6 +154,10 @@ export class TextEditorComponent implements AfterViewInit, OnInit, OnChanges {
     this.lineHeight.set(`${newLineHeight}px`);
 
     this.validateContent();
+
+    const editorElement = document.getElementById('editor');
+    if (!editorElement) return
+    editorElement.style.overflow = 'auto'; 
   }
   
 
