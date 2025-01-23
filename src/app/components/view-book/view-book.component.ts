@@ -227,8 +227,8 @@ export class ViewBookComponent implements OnInit, OnDestroy, AfterViewInit {
       this.baseHeight = '297mm';
       this.bookWidth.set(`${210 / 0.96}mm`);
       this.bookHeight.set(`${297 / 0.96}mm`);
-      this.baseBookWidth = '210mm';
-      this.baseBookHeight = '297mm';
+      this.baseBookWidth = `${210 / 0.96}mm`;
+      this.baseBookHeight = `${297 / 0.96}mm`;
     } else if (bookSelected.format === 'medium') {
       this.width.set('148mm');
       this.height.set('210mm');
