@@ -229,6 +229,7 @@ export class BibliothekComponent implements OnInit, OnDestroy {
   }
 
   handleBookClicked(bookClicked: Book) {
+    console.error('title : ', bookClicked.title)
 
     const indexBook = this.bibliothek.books?.findIndex(book => {
       return book.title === bookClicked.title;
@@ -512,6 +513,7 @@ export class BibliothekComponent implements OnInit, OnDestroy {
       next: (data) => {
         
         this.bibliothek.books?.splice(this.indexBook, 1, this.bookService.bookSelected()!)
+        console.log(this.bibliothek)
       },
       error: (error) => {
         console.error('Error updating book: ', error);
