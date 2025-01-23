@@ -234,11 +234,14 @@ export class BibliothekComponent implements OnInit, OnDestroy {
       return book.title === bookClicked.title;
     })
 
+    console.log(indexBook)
+
     if (indexBook === -1 || indexBook === undefined) return;
     this.indexBook = indexBook;
-
+    console.log(bookClicked.id)
     this.dataservice.getBook(bookClicked.id).subscribe({
       next: (data) => {
+        console.log(data)
         const book = data[0];
         this.bookService.selectBook(book)
         if (book.pages && book.pages.length > 0) { 
@@ -316,7 +319,6 @@ export class BibliothekComponent implements OnInit, OnDestroy {
 
     this.dataservice.createFolder(name, this.bibliothek.id).subscribe({
       next: (data) => {
-        console.log(data)
         this.bibliothek.subfolders?.push(data);
       },
       error: (error) => {
@@ -345,19 +347,13 @@ export class BibliothekComponent implements OnInit, OnDestroy {
     this.bookService.windowCreationNewBook.set(false); // trigger window for title
     
     if (this.bookForm.valid) {
-      console.log('Form Submitted', this.bookForm.value);
 
       const title = this.bookForm.get('title')?.value; 
       const format = this.bookForm.get('format')?.value; 
       const padding = this.bookForm.get('padding')?.value;
 
-      console.log(title)
-      console.log(format)
-      console.log(padding)
-
       this.dataservice.createBook(title, format, padding, this.bibliothek.id).subscribe({
         next: (data) => {
-          console.log(data)
           this.bibliothek.books?.push(data);
         },
         error: (error) => {

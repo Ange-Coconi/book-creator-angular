@@ -72,7 +72,6 @@ export class DataService {
   };
 
   createBook(title: string, format: string, padding: string, folderId: number): Observable<any> {
-    console.log(format)
     return this.http.post(`${this.apiUrl}/books`, {
       title,
       folderId, 
@@ -92,7 +91,6 @@ export class DataService {
   };
 
   createBookUploaded(dataUpload: string[], format: string, padding: string, folderId: number): Observable<any> {
-    console.log(format)
     return this.http.post(`${this.apiUrl}/books/upload`, {
       dataUpload,
       folderId, 
