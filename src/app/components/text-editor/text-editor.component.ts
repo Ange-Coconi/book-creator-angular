@@ -240,9 +240,6 @@ export class TextEditorComponent implements AfterViewInit, OnInit, OnChanges {
         console.error('New page has undefined bookId');
       }
     }
-
-    console.log(this.height())
-    console.log(this.width())
      
   }
 

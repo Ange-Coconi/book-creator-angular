@@ -96,7 +96,7 @@ export class DashboardComponent implements OnInit {
     this.dataservice.getBooksDashboard().subscribe({
       next: (data) => {
         this.bookDashboard = data;
-        console.log(data)
+
       },
       error: (error) => {
         console.error('Error fetching books dashboard: ', error);

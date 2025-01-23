@@ -229,20 +229,17 @@ export class BibliothekComponent implements OnInit, OnDestroy {
   }
 
   handleBookClicked(bookClicked: Book) {
-    console.error('title : ', bookClicked.title)
 
     const indexBook = this.bibliothek.books?.findIndex(book => {
       return book.title === bookClicked.title;
     })
 
-    console.log(indexBook)
-
     if (indexBook === -1 || indexBook === undefined) return;
     this.indexBook = indexBook;
-    console.log(bookClicked.id)
+
     this.dataservice.getBook(bookClicked.id).subscribe({
       next: (data) => {
-        console.log(data)
+
         const book = data[0];
         this.bookService.selectBook(book)
         if (book.pages && book.pages.length > 0) { 
@@ -508,15 +505,22 @@ export class BibliothekComponent implements OnInit, OnDestroy {
  
   handleClickBackFromBook() { 
     this.bookService.retrieveEditorContent()
+    console.log(this.bibliothek)
+    console.log(this.bookService.bookSelected())
 
     this.dataservice.updateBook(this.bookService.bookSelected()?.id!, this.bookService.bookSelected()?.pages!).subscribe({
       next: (data) => {
         
         this.bibliothek.books?.splice(this.indexBook, 1, this.bookService.bookSelected()!)
         console.log(this.bibliothek)
+
+        this.bookService.selectBook(null);
       },
       error: (error) => {
         console.error('Error updating book: ', error);
+
+        this.bookService.selectBook(null);
+
         if (error.error.message && typeof error.error.message === 'string') {
           this.authService.alert.set(error.error.message);
 
@@ -530,7 +534,7 @@ export class BibliothekComponent implements OnInit, OnDestroy {
         }
       }
     });
-    this.bookService.selectBook(null);
+    
     
   }
 
@@ -584,7 +588,6 @@ export class BibliothekComponent implements OnInit, OnDestroy {
       next: (data) => {
         const bibliothek = data[0]
         if (isFolder(bibliothek)) {
-          console.log(bibliothek)
           this.bibliothek = bibliothek;
         }
         

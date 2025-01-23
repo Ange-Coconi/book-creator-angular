@@ -81,7 +81,7 @@ export class CreationBookComponent implements OnInit {
   ngOnInit(): void {
     this.authService.session().subscribe({
       next: (data) => {
-        console.log(data)
+
         this.authService.userData.set(data);
 
       },

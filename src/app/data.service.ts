@@ -13,8 +13,6 @@ export class DataService {
   constructor(private http: HttpClient) { }
 
   getBooksDashboard(): Observable<any> {
-    
-    console.log('Sending request with:', `${this.apiUrl}/books/dashboard`);
     return this.http.get(`${this.apiUrl}/books/dashboard`, { withCredentials: true }).pipe(
       map(response => response),
       catchError(error => { 
