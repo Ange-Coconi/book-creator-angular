@@ -92,7 +92,6 @@ export class DashboardComponent implements OnInit {
   errorTimeout: any;
 
   ngOnInit() {
-    
 
     this.dataservice.getBooksDashboard().subscribe({
       next: (data) => {
@@ -107,9 +106,19 @@ export class DashboardComponent implements OnInit {
     setTimeout(() => {
       this.isReady = true;
     }, 20); // Adjust delay as needed
-
     
+    this.authService.session().subscribe({
+      next: (data) => {
+        console.log(data)
+        this.authService.userData.set(data);
 
+      },
+      error: (error) => {
+        console.error('Error session : ', error);
+
+      }
+    });
+    
   }
 
   constructor (
@@ -119,27 +128,5 @@ export class DashboardComponent implements OnInit {
     public authService: AuthService
   ) {}
 
-  ngOnDestroy(): void {
-    this.authService.logOut().subscribe({
-      next: (data) => {
-        this.authService.userData.set(null);
-
-      },
-      error: (error) => {
-        console.error('Error sign-in : ', error);
-        if (error.error.message && typeof error.error.message === 'string') {
-          this.authService.alert.set(error.error.message);
-
-          if (this.errorTimeout) {
-            clearTimeout(this.errorTimeout)
-          }
-
-          this.errorTimeout = setTimeout(() => {
-            this.authService.alert.set('')
-          }, 2500)
-        }
-      }
-    })
-    
-  }
+  
 }

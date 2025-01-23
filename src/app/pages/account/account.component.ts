@@ -19,7 +19,7 @@ import { Router } from '@angular/router';
     </div>
   `,
 })
-export class AccountComponent implements OnInit, OnDestroy {
+export class AccountComponent implements OnInit {
 
   errorTimeout: any;
 
@@ -48,27 +48,5 @@ export class AccountComponent implements OnInit, OnDestroy {
 
   }
 
-  ngOnDestroy(): void {
-    this.authService.logOut().subscribe({
-      next: (data) => {
-        this.authService.userData.set(null);
-
-      },
-      error: (error) => {
-        console.error('Error sign-in : ', error);
-        if (error.error.message && typeof error.error.message === 'string') {
-          this.authService.alert.set(error.error.message);
-
-          if (this.errorTimeout) {
-            clearTimeout(this.errorTimeout)
-          }
-
-          this.errorTimeout = setTimeout(() => {
-            this.authService.alert.set('')
-          }, 2500)
-        }
-      }
-    })
-    
-  }
+  
 }

@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { BibliothekComponent } from '../../components/bibliothek/bibliothek.component';
 import { TextEditorComponent } from '../../components/text-editor/text-editor.component';
 import { BookService } from '../../book.service';
@@ -63,7 +63,7 @@ import { AuthService } from '../../auth.service';
   }
   `
 })
-export class CreationBookComponent {
+export class CreationBookComponent implements OnInit {
   zoomPlusInfo: boolean = false;
   zoomMinusInfo: boolean = false;
   errorTimeout: any;
@@ -78,27 +78,18 @@ export class CreationBookComponent {
 
   constructor (public bookService: BookService, public dataservice: DataService, public authService: AuthService) {}
 
-  ngOnDestroy(): void {
-    this.authService.logOut().subscribe({
+  ngOnInit(): void {
+    this.authService.session().subscribe({
       next: (data) => {
-        this.authService.userData.set(null);
+        console.log(data)
+        this.authService.userData.set(data);
 
       },
       error: (error) => {
-        console.error('Error sign-in : ', error);
-        if (error.error.message && typeof error.error.message === 'string') {
-          this.authService.alert.set(error.error.message);
+        console.error('Error session : ', error);
 
-          if (this.errorTimeout) {
-            clearTimeout(this.errorTimeout)
-          }
-
-          this.errorTimeout = setTimeout(() => {
-            this.authService.alert.set('')
-          }, 2500)
-        }
       }
-    })
-    
+    });
   }
+  
 }

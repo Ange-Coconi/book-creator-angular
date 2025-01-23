@@ -86,7 +86,18 @@ export class ContactComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    console.log("hello")
+    this.authService.session().subscribe({
+      next: (data) => {
+        console.log(data)
+        this.authService.userData.set(data);
+
+      },
+      error: (error) => {
+        console.error('Error session : ', error);
+
+      }
+    });
+
     this.contactForm = this.fb.group({
       firstname: ['', Validators.required],
       lastname: ['', Validators.required],
@@ -94,7 +105,7 @@ export class ContactComponent implements OnInit {
       reason: ['', Validators.required],
       message: ['', Validators.required],
     });
-    console.log(this.contactForm)
+   
   }
 
   onSubmit(): void {
@@ -110,7 +121,6 @@ export class ContactComponent implements OnInit {
       this.authService.contact(firstname, lastname, email, reason, message).subscribe({
         next: (data) => {
 
-          console.log(data)
         },
         error: (error) => {
           console.error('Error contact : ', error);
@@ -128,29 +138,6 @@ export class ContactComponent implements OnInit {
         }
       });
     }
-  }
-
-  ngOnDestroy(): void {
-    this.authService.logOut().subscribe({
-      next: (data) => {
-        this.authService.userData.set(null);
-
-      },
-      error: (error) => {
-        console.error('Error sign-in : ', error);
-        if (error.error.message && typeof error.error.message === 'string') {
-          this.authService.alert.set(error.error.message);
-
-          if (this.errorTimeout) {
-            clearTimeout(this.errorTimeout)
-          }
-
-          this.errorTimeout = setTimeout(() => {
-            this.authService.alert.set('')
-          }, 2500)
-        }
-      }
-    })
   }
 }
 
