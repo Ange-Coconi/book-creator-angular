@@ -67,12 +67,11 @@ export class SignInComponent implements OnInit {
       password: ['', Validators.required],
       email: ['', Validators.email]
     });
-    console.log(this.signInForm)
+
   }
 
   onSubmit(): void {
     if (this.signInForm.valid) {
-      console.log('Form Submitted', this.signInForm.value);
 
       const username = this.signInForm.get('username')?.value; 
       const password = this.signInForm.get('password')?.value; 

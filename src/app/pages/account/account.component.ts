@@ -43,9 +43,6 @@ export class AccountComponent implements OnInit {
     if (this.authService.userData() === null) {
       this.router.navigate(['/login']);
     }
-
-    const userData = this.authService.userData(); // Store the result in a variable
-
   }
 
   

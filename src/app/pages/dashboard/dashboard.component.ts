@@ -109,7 +109,7 @@ export class DashboardComponent implements OnInit {
     
     this.authService.session().subscribe({
       next: (data) => {
-        console.log(data)
+
         this.authService.userData.set(data);
 
       },
