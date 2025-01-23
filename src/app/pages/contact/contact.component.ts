@@ -75,6 +75,7 @@ export class ContactComponent implements OnInit {
   contactForm!: FormGroup;
   contactTimeout: any;
   redirection: boolean = true;
+  errorTimeout: any;
 
   constructor(
     private fb: FormBuilder, 
@@ -127,9 +128,29 @@ export class ContactComponent implements OnInit {
         }
       });
     }
+  }
 
+  ngOnDestroy(): void {
+    this.authService.logOut().subscribe({
+      next: (data) => {
+        this.authService.userData.set(null);
 
+      },
+      error: (error) => {
+        console.error('Error sign-in : ', error);
+        if (error.error.message && typeof error.error.message === 'string') {
+          this.authService.alert.set(error.error.message);
 
+          if (this.errorTimeout) {
+            clearTimeout(this.errorTimeout)
+          }
+
+          this.errorTimeout = setTimeout(() => {
+            this.authService.alert.set('')
+          }, 2500)
+        }
+      }
+    })
   }
 }
 

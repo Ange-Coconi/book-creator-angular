@@ -88,7 +88,8 @@ import { AuthService } from '../../auth.service';
 })
 export class DashboardComponent implements OnInit {
   isReady = false;
-  bookDashboard: Book[] = []
+  bookDashboard: Book[] = [];
+  errorTimeout: any;
 
   ngOnInit() {
     
@@ -117,4 +118,28 @@ export class DashboardComponent implements OnInit {
     public dataservice: DataService,
     public authService: AuthService
   ) {}
+
+  ngOnDestroy(): void {
+    this.authService.logOut().subscribe({
+      next: (data) => {
+        this.authService.userData.set(null);
+
+      },
+      error: (error) => {
+        console.error('Error sign-in : ', error);
+        if (error.error.message && typeof error.error.message === 'string') {
+          this.authService.alert.set(error.error.message);
+
+          if (this.errorTimeout) {
+            clearTimeout(this.errorTimeout)
+          }
+
+          this.errorTimeout = setTimeout(() => {
+            this.authService.alert.set('')
+          }, 2500)
+        }
+      }
+    })
+    
+  }
 }

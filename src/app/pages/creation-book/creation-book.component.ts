@@ -5,6 +5,7 @@ import { BookService } from '../../book.service';
 import { ToolbarComponent } from "../../components/toolbar/toolbar.component";
 import { ViewBookComponent } from "../../components/view-book/view-book.component";
 import { DataService } from '../../data.service';
+import { AuthService } from '../../auth.service';
 
 @Component({
   selector: 'app-creation-book',
@@ -65,6 +66,7 @@ import { DataService } from '../../data.service';
 export class CreationBookComponent {
   zoomPlusInfo: boolean = false;
   zoomMinusInfo: boolean = false;
+  errorTimeout: any;
 
   zoomPlusClicked() {
     this.zoomPlusInfo = !this.zoomPlusInfo;
@@ -74,6 +76,29 @@ export class CreationBookComponent {
     this.zoomMinusInfo = !this.zoomMinusInfo;
   }
 
-  constructor (public bookService: BookService, public dataservice: DataService) {}
+  constructor (public bookService: BookService, public dataservice: DataService, public authService: AuthService) {}
 
+  ngOnDestroy(): void {
+    this.authService.logOut().subscribe({
+      next: (data) => {
+        this.authService.userData.set(null);
+
+      },
+      error: (error) => {
+        console.error('Error sign-in : ', error);
+        if (error.error.message && typeof error.error.message === 'string') {
+          this.authService.alert.set(error.error.message);
+
+          if (this.errorTimeout) {
+            clearTimeout(this.errorTimeout)
+          }
+
+          this.errorTimeout = setTimeout(() => {
+            this.authService.alert.set('')
+          }, 2500)
+        }
+      }
+    })
+    
+  }
 }

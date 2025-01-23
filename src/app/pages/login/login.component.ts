@@ -48,6 +48,10 @@ export class LoginComponent implements OnInit {
     ) {}
 
   ngOnInit(): void {
+    if (this.authService.userData() !== null) {
+      this.router.navigate(['/']);
+    }
+
     this.loginForm = this.fb.group({
       username: ['', Validators.required],
       password: ['', Validators.required],
