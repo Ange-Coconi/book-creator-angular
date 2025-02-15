@@ -14,6 +14,7 @@ import { AuthService } from '../../auth.service';
     <div *ngIf="isReady" class="main-container relative top-14 z-0 ">
       <div class="previsualization flex justify-center items-center">
         <div class="book-container p-8 rounded-lg bg-slate-900/75 text-white">
+          <p>Backend desactivated !</p>
           @for (book of bookDashboard; track book.id) {
             <app-book-dashboard [book]="book"/>
           }
